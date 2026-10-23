@@ -1,160 +1,150 @@
-# Akinator de Viajes — Sistema Experto de Recomendación de Destinos
+# Akinator de viajes: sistema experto de recomendación de países
 
-Sistema experto determinista ejecutado íntegramente en el navegador web que recomienda el país ideal para viajar entre 40 candidatos mundiales basándose en las restricciones y preferencias del usuario.
+Sistema experto que recomienda un país de viaje entre 40 candidatos. Pregunta restricciones y preferencias, descarta los países incompatibles mediante reglas y ordena el resto por compatibilidad, explicando cada decisión con datos y fuentes.
 
----
+Trabajo de la Unidad 5 (Modelos de IA), especialidad de IA y Big Data, CEBANC.
 
-## 1. Descripción general
+## Acceso
 
-"Akinator de Viajes" implementa un motor de inferencia clásico determinista en TypeScript. A través de un cuestionario paso a paso, el sistema recopila hechos del usuario, evalúa filtros eliminatorios rígidos (presupuesto diario, horas de vuelo, visados y requisitos de entrada, vacunas, seguridad y clima mensual), pondera la afinidad en 8 dimensiones clave y desempata de forma estricta.
+- Aplicación publicada (Google AI Studio): **PENDIENTE: enlace público de la aplicación**
+- Memoria del proyecto: **PENDIENTE: enlace de la memoria**
 
-Todo el razonamiento se realiza en memoria en el cliente sin realizar ninguna llamada a APIs externas ni modelos de lenguaje, garantizando respuestas 100% reproducibles, privadas y con trazabilidad completa.
+## Destinatarios
 
----
+Personas residentes en España que planean un viaje turístico corto (menos de 90 días) y aún no saben el destino.
 
-## 2. Arquitectura del Sistema
+## Ejemplo de uso
 
-El proyecto sigue una separación estricta de responsabilidades en capas modulares:
+1. Pulsa "Iniciar cuestionario personalizado" y responde las 18 preguntas: 10 de restricción y 8 de preferencia en escala de 1 a 5.
+2. Ejemplo: presupuesto 120 €/día, 7 días, julio, vuelo máximo 5 h, viaje en pareja, trámite máximo 1 (autorización electrónica), no acepta riesgo alto, clima cálido, playa 5.
+3. El sistema muestra los tres primeros países con su porcentaje de compatibilidad, el dato que justifica cada criterio y los países descartados con la regla que los eliminó. Si ningún país cumple todos los filtros, nunca deja la pantalla vacía: muestra "Los que más se ajustan", con el margen de cada regla incumplida, y la regla M1 avisa cuando la compatibilidad del mejor queda baja.
+
+## Componentes
+
+| N.º | Componente | Dónde está |
+| --- | --- | --- |
+| 1 | Interfaz | `src/ui/` |
+| 2 | Base de hechos | Estado de la sesión en memoria del navegador (`src/App.tsx`) |
+| 3 | Motor de inferencia | `src/engine/` |
+| 4 | Base de conocimiento | `public/knowledge.json`, cargada por `src/data/knowledgeLoader.ts` |
+| 5 | Módulo de explicación | `src/explain/` |
+
+Diagrama: `docs/diagrama_componentes.png` (también en SVG).
+
+Almacenamiento: el conocimiento es un fichero JSON de este repositorio y la sesión vive en memoria. No hay base de datos, servidor ni claves de API. El motor es determinista y no llama a ningún modelo de IA.
+
+## Funciones adicionales
+
+- **Comparador de destinos.** En la pantalla de resultados se marcan 2 o 3 países y se abre una comparativa cara a cara: compatibilidad global, coste diario, horas de vuelo, seguridad, requisitos de entrada, restricciones incumplidas, afinidad en los 8 criterios y gráfico de clima del mes elegido.
+- **Simulador de sensibilidad ("¿Qué pasaría si...?").** En la pantalla de resultados permite mover el presupuesto diario, el límite de horas de vuelo, el mes de viaje y el peso de cada uno de los 8 criterios (de 0, que lo ignora, a 5). Las recomendaciones y los porcentajes se recalculan al momento y se pueden restablecer las respuestas originales.
+
+La aplicación también incluye la vista de países descartados, la traza de reglas disparadas por el motor y una ventana de explicación detallada por país.
+
+## Tecnologías
+
+React 19 y TypeScript, empaquetado con Vite y estilos con Tailwind CSS. El proyecto se generó con Google AI Studio (modo Build) y se versiona en GitHub.
+
+Por qué TypeScript y no Python:
+
+- Google AI Studio publica aplicaciones React y TypeScript que se ejecutan sin servidor propio.
+- El motor es determinista y corre entero en el navegador, sin llamadas a ninguna API.
+- El conocimiento está en un JSON independiente del lenguaje, así que el motor no depende de cómo se generó.
+- Python solo se usa fuera de la aplicación, en `data/cargar_conocimiento.py`, para generar ese JSON a partir de la plantilla de datos.
+
+## Conocimiento
+
+`public/knowledge.json` contiene 40 países con 11 atributos (coste diario, horas de vuelo, requisito de entrada, seguridad, sanitarios, patrimonio cultural UNESCO, naturaleza UNESCO, gastronomía UNESCO, inglés, moneda euro y playa) y el clima mensual. Cada dato tiene valor, fuente, fecha de consulta (2026-10-19) y calidad: verificado, estimado o SIN DATO.
+
+Los 8 criterios de preferencia son playa, cultura, naturaleza, gastronomía, precio, seguridad, inglés y clima.
+
+Fuentes: Budget Your Trip, Ministerio de Asuntos Exteriores, Global Peace Index 2026, UNESCO, EF English Proficiency Index 2025, Banco Mundial (Climate Change Knowledge Portal) y la lista de países del euro de la UE. Detalle y limitaciones en la memoria, secciones 5 y 13.
+
+## Reglas
+
+18 reglas:
+
+| Tipo | Reglas |
+| --- | --- |
+| Filtros eliminatorios (8) | F1 a F7 y F10 |
+| Puntuación (2) | P1 y P2 (ajuste de clima del mes) |
+| Conflicto (3) | C1 a C3 |
+| Sistema (5) | D1, D2, M1, M2 y M3 |
+
+Las reglas están en `data/reglas.json` y se copian a `public/knowledge.json`.
+
+Puntuación: `compatibilidad = suma(peso x afinidad) / suma(5 x peso) x 100`, con peso de 1 a 5 y afinidad de 1 a 5 (quintiles entre los 40 países o mapa fijo). Un 5 en una preferencia se trata como requisito (F10): se descarta el país si su afinidad en ese criterio es menor que 4. Un dato SIN DATO cuenta con afinidad 3 y no descarta el país. Los empates se resuelven con M3: más criterios con afinidad 4 o 5 y, después, menor coste diario.
+
+## Pruebas
+
+La ruta `#/tests` de la aplicación ejecuta 15 casos reproducibles más el caso 11b, definidos en `src/engine/tests.ts`:
+
+| N.º | Caso |
+| --- | --- |
+| 1 | Presupuesto 40 €/día |
+| 2 | Horas máximas de vuelo 3 |
+| 3 | Trámite máximo 0 |
+| 4 | No acepta vacunas recomendadas |
+| 5 | No acepta riesgo alto |
+| 6 | Viaje con niños |
+| 7 | Clima con peso 5 (F10) |
+| 8 | Lluvia y ajuste P2 |
+| 9 | Playa con peso 5 |
+| 10 | Todos los pesos a 0 |
+| 11 | Filtros imposibles (10 € y 1 h) |
+| 11b | Ningún país cumple todo pero el mejor tiene compatibilidad alta: sin aviso M1 |
+| 12 | Desempate |
+| 13 | País con SIN DATO (coste diario de Túnez) |
+| 14 | Playa 5 y clima frío: conflicto C1 |
+| 15 | Determinismo: la misma entrada produce la misma salida |
+
+La lista con entrada y resultado esperado está en la memoria, sección 10.
+
+## Limitaciones
+
+- Datos consultados el 2026-10-19; los requisitos de entrada y sanitarios pueden cambiar.
+- Seguridad: umbrales propios sobre el Global Peace Index, que mide conflicto y violencia, no riesgo turístico.
+- Naturaleza y gastronomía miden reconocimientos de la UNESCO, no toda la oferta del país.
+- Horas de vuelo: cálculo sin escalas. Clima: media nacional.
+- 8 datos de 440 están en SIN DATO.
+
+## Ejecución en local
+
+Requiere Node.js. La aplicación no necesita variables de entorno ni claves.
+
+```bash
+npm install
+npm run dev
+```
+
+La aplicación queda en `http://localhost:3000`. Las pruebas se abren en `http://localhost:3000/#/tests`.
+
+Otros comandos:
+
+- `npm run lint`: comprobación de tipos con TypeScript.
+- `npm run build`: compilación para producción en `dist/`.
+- `npm run preview`: sirve la versión compilada.
+
+## Cómo regenerar el conocimiento
+
+Requiere Python 3 y `openpyxl`. Desde la carpeta `data/`:
+
+```bash
+pip install openpyxl
+python cargar_conocimiento.py plantilla_datos_40_paises.xlsx knowledge_completo.json
+```
+
+El script lee también `reglas.json` y `preguntas.json` de la misma carpeta. `plantilla_datos_40_paises.xlsx` es la tabla de datos con fuentes y `knowledge_completo.json` es la versión completa. `public/knowledge.json` es una versión reducida, sin los metadatos de método de cada dato, que es la que lee la aplicación.
+
+## Estructura
 
 ```
+public/knowledge.json   base de conocimiento que lee la aplicación
 src/
-├── data/                    # Acceso a la base de conocimiento y definiciones de tipos
-│   ├── types.ts             # Esquemas de tipos TypeScript (Pais, Regla, Criterio, Hechos)
-│   └── knowledgeLoader.ts   # Carga y almacenamiento en caché de knowledge.json
-├── engine/                  # Motor de inferencia determinista (independiente de React)
-│   ├── types.ts             # Tipos de resultados de evaluación, logs y desgloses
-│   ├── evaluator.ts         # Resolución de rutas (pais.*, hecho.*), operadores y plantillas
-│   ├── inference.ts         # Pasos 1 a 5 del ciclo de inferencia del sistema experto
-│   └── tests.ts             # Banco automatizado de 15 pruebas de verificación
-├── explain/                 # Módulo de explicación y justificación
-│   └── explainer.ts         # Aportaciones numéricas, datos reales con unidades y fuentes
-├── ui/                      # Componentes visuales desacoplados en React y Tailwind CSS
-│   ├── Navbar.tsx           # Navegación, versión de base de conocimiento y contador en vivo
-│   ├── Footer.tsx           # Pie de página y aviso obligatorio de limitaciones
-│   ├── WelcomeScreen.tsx    # Pantalla de bienvenida con perfiles rápidos predefinidos
-│   ├── QuestionWizard.tsx   # Flujo guiado pregunta a pregunta (tipo Akinator)
-│   ├── ResultsView.tsx      # Top 3, gráfico de barras, comparador, simulador y exportación
-│   ├── SensitivitySimulator.tsx # Simulador de análisis "¿Y si...?" en tiempo real
-│   ├── DestinationComparator.tsx # Comparador cara a cara (2-3 destinos) con matriz de ventajas
-│   ├── ClimateChart.tsx     # Gráfico visual térmico y pluviométrico de 12 meses
-│   ├── ExplainModal.tsx     # Modal "Ver por qué" con desglose de cálculo, reglas y clima
-│   ├── DiscardedCountriesView.tsx # Buscador de descartes agrupados por regla
-│   ├── RulesLogView.tsx     # Registro cronológico de ejecución de reglas
-│   ├── TestsView.tsx        # Interfaz de ejecución de las 16 pruebas en `#/tests`
-│   └── QualityBadge.tsx     # Insignias de calidad (verificado, estimado, SIN DATO)
-├── App.tsx                  # Enrutador en memoria y orquestador del estado
-└── main.tsx                 # Entrada de la aplicación React
+  data/                 tipos y carga de knowledge.json
+  engine/               motor de inferencia, evaluador de condiciones y pruebas
+  explain/              explicación de cada recomendación y descarte
+  ui/                   pantallas y componentes de React
+  App.tsx               estado de la sesión y navegación por rutas (#/tests, #/rules...)
+data/                   datos de partida, reglas, preguntas y scripts de Python
+docs/                   diagrama de componentes y prompt usado en AI Studio
 ```
-
-### Componentes de la Arquitectura:
-
-1. **Base de Conocimiento (`public/knowledge.json`):**
-   - 40 países con atributos normalizados (`coste_diario`, `horas_vuelo`, `entrada_espanoles`, `seguridad`, `sanitarios`, `patrimonio_cultural`, `naturaleza`, `gastronomia`, `ingles`, `moneda_euro`, `playa`) y series climáticas mensuales (temperatura y precipitación).
-   - 8 criterios con metodologías de quintiles o mapeo fijo.
-   - Reglas de inferencia de tipo filtro (`F1`–`F9`), filtro por criterio (`F10`), puntuación (`P1`), conflictos (`C1`–`C3`) y sistema (`D1`, `D2`, `M1`, `M2`, `M3`).
-
-2. **Base de Hechos (`hecho`):**
-   - Objeto en memoria que contiene las respuestas a restricciones (`presupuesto_diario`, `dias`, `mes`, `horas_max`, `companeros`, `max_tramite`, `acepta_vacunas`, `acepta_riesgo`, `clima`, `tolera_lluvia`) y pesos de afinidad (`peso_playa`, ..., `peso_ingles` del 1 al 5, donde "Me da igual" o pregunta omitida = 0).
-
-3. **Motor de Inferencia (`engine/inference.ts`):**
-   - **Modo Flexible (por defecto):** En lugar de descartar drásticamente un país excelente cuando una sola restricción no encaja (por ejemplo, querer 22 °C en abril cuando el destino tiene 17.5 °C, o un vuelo de 9 h cuando se pedían 8 h), el motor calcula un porcentaje global de compatibilidad (0-100%). Identifica y etiqueta con precisión qué opciones elegidas no estarán disponibles (`discrepancias`), penalizando de forma ponderada la puntuación sin eliminar el destino.
-   - **Umbral Mínimo Configurable (60% - 70%):** Solo cuando ningún destino del catálogo alcance este umbral de compatibilidad global, el sistema notificará que no se ha encontrado ningún destino adecuado, ofreciendo alternativas cercanas y botones de ajuste rápido.
-   - **Modo Estricto (conmutable en UI):** Mantiene la evaluación eliminatoria binaria tradicional donde cualquier condición no satisfecha descarta el país de inmediato.
-   - **Paso 1: Filtros y discrepancias:** Evalúa las reglas F1–F10. En modo estricto descarta; en modo flexible genera advertencias explicativas y deducciones proporcionales.
-   - **Paso 2: Puntuación ponderada:** Aplica la fórmula `suma(peso * afinidad) / suma(5 * peso) * 100` y combina el factor de restricciones.
-   - **Paso 3: Ordenación jerárquica y desempates:** Orden por compatibilidad descendente, luego por más criterios con afinidad 4-5, menor número de discrepancias y menor coste diario.
-   - **Paso 4: Detección de conflictos:** Evalúa avisos como `C1`, `C2` y `C3`.
-   - **Paso 5: Casos límite:** Gestión de avisos M1 y M2 con sugerencias inteligentes de relajación.
-
-4. **Módulo de Explicación (`explain/explainer.ts`):**
-   - Genera la trazabilidad completa: puntos obtenidos frente al máximo posible, valor del atributo medido con su unidad real (€/día, horas, sitios UNESCO), desglose explícito de opciones no disponibles / discrepancias con advertencias ámbar, regla de inferencia y metadatos de calidad del dato (verificado, estimado, SIN DATO) con enlaces a fuentes oficiales y fecha de consulta.
-
----
-
-## 3. Cómo ejecutar la aplicación
-
-### Requisitos previos:
-- Node.js (versión 18 o superior)
-- npm
-
-### Pasos:
-1. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-2. Iniciar el servidor de desarrollo en el puerto 3000:
-   ```bash
-   npm run dev
-   ```
-3. Abrir en el navegador:
-   - Aplicación principal: `http://localhost:3000/`
-   - Banco de pruebas unitarias: `http://localhost:3000/#/tests`
-
-4. Compilar para producción:
-   ```bash
-   npm run build
-   ```
-
----
-
-## 4. Cómo editar y extender `knowledge.json`
-
-El archivo de conocimiento se ubica en `public/knowledge.json`. No hay valores hardcodeados en la aplicación; todo se lee dinámicamente de este fichero.
-
-### Añadir o modificar un país:
-En el array `"paises"`, añade un objeto con la siguiente estructura:
-```json
-{
-  "id": 41,
-  "nombre": "Nombre del País",
-  "zona": "Europa",
-  "subzona": "Europa Occidental",
-  "nivel_tramite": 0,
-  "atributos": {
-    "coste_diario": { "valor": 120.0, "fuente": "https://...", "fecha": "2026-10-19", "calidad": "estimado", "obs": null },
-    "horas_vuelo": { "valor": 3.0, "fuente": "Cálculo propio", "fecha": "2026-10-19", "calidad": "estimado", "obs": null },
-    "entrada_espanoles": { "valor": "Sin trámite previo", "fuente": "https://...", "fecha": "2026-10-19", "calidad": "verificado", "obs": null },
-    "seguridad": { "valor": "Bajo riesgo", "fuente": "GPI", "fecha": "2026-10-19", "calidad": "estimado", "obs": null },
-    "sanitarios": { "valor": "Ninguno obligatorio", "fuente": "MAEC", "fecha": "2026-10-19", "calidad": "verificado", "obs": null },
-    "patrimonio_cultural": { "valor": 10.0, "fuente": "UNESCO", "fecha": "2026-10-19", "calidad": "verificado", "obs": null },
-    "naturaleza": { "valor": 2.0, "fuente": "UNESCO", "fecha": "2026-10-19", "calidad": "verificado", "obs": null },
-    "gastronomia": { "valor": 1.0, "fuente": "UNESCO", "fecha": "2026-10-19", "calidad": "estimado", "obs": null },
-    "ingles": { "valor": "Alto", "fuente": "EF EPI", "fecha": "2026-10-19", "calidad": "estimado", "obs": null },
-    "moneda_euro": { "valor": "Sí", "fuente": "UE", "fecha": "2026-10-19", "calidad": "verificado", "obs": null },
-    "playa": { "valor": "Sí", "fuente": "Criterio propio", "fecha": "2026-10-19", "calidad": "estimado", "obs": null }
-  },
-  "clima": {
-    "temperatura": [10.0, 11.0, 13.0, 15.0, 18.0, 22.0, 25.0, 25.0, 21.0, 17.0, 13.0, 10.0],
-    "precipitacion": [60.0, 50.0, 45.0, 40.0, 30.0, 15.0, 5.0, 8.0, 30.0, 60.0, 70.0, 65.0],
-    "fuente": "Banco Mundial",
-    "fecha": "2026-10-19"
-  },
-  "afinidad": {
-    "playa": 5,
-    "cultura": 4,
-    "naturaleza": 3,
-    "gastronomia": 4,
-    "precio": 3,
-    "seguridad": 5,
-    "ingles": 4
-  }
-}
-```
-
-### Añadir o editar reglas:
-Puedes añadir reglas en el array `"reglas"`:
-- `tipo: "filtro"`: usa la sintaxis `{ "izq": "pais.atributo", "op": ">", "der": "hecho.propiedad" }`.
-- `tipo: "filtro_por_criterio"`: itera sobre `"para_cada": ["playa", ...]` reemplazando `{criterio}`.
-- `tipo: "conflicto"`: emite advertencias contextuales sin descartar países.
-
----
-
-## 5. Limitaciones y fuentes de información
-
-> **Aviso importante sobre los datos:**
->
-> *Datos consultados el 2026-10-19. Los requisitos de entrada y sanitarios pueden cambiar. Seguridad = Global Peace Index (umbral propio). Naturaleza y gastronomía = reconocimientos UNESCO, no miden toda la oferta.*
-
-1. **Requisitos consulares y sanitarios:** La información proviene de las fichas del Ministerio de Asuntos Exteriores y Cooperación (MAEC) y Sanidad Exterior con fecha de corte de octubre de 2026. Los viajeros deben verificar los requisitos oficiales antes de viajar.
-2. **Índice de seguridad:** Basado en el Global Peace Index (GPI) 2026 con asignación de umbrales cuantitativos a categorías cualitativas (Bajo riesgo, Riesgo medio, Riesgo alto).
-3. **Cultura, naturaleza y gastronomía:** Se miden a través de bienes y reservas inscritas en la Lista de Patrimonio Mundial y la Red de Ciudades Creativas de la UNESCO, sirviendo como métrica objetiva y verificable, aunque no representan la totalidad de la oferta turística local.
