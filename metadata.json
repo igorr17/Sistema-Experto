@@ -1,0 +1,6 @@
+{
+  "name": "Akinator de Viajes",
+  "description": "Sistema experto determinista para recomendar el destino ideal de viaje entre 40 países según tus preferencias y restricciones.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
