@@ -1,0 +1,202 @@
+{
+ "Portugal": {
+  "ciudad": "Lisboa",
+  "km": 502,
+  "horas": 1.1
+ },
+ "Francia": {
+  "ciudad": "París",
+  "km": 1053,
+  "horas": 1.8
+ },
+ "Italia": {
+  "ciudad": "Roma",
+  "km": 1364,
+  "horas": 2.2
+ },
+ "Grecia": {
+  "ciudad": "Atenas",
+  "km": 2370,
+  "horas": 3.5
+ },
+ "Croacia": {
+  "ciudad": "Zagreb",
+  "km": 1701,
+  "horas": 2.6
+ },
+ "Noruega": {
+  "ciudad": "Oslo",
+  "km": 2388,
+  "horas": 3.5
+ },
+ "Islandia": {
+  "ciudad": "Reikiavik",
+  "km": 2891,
+  "horas": 4.1
+ },
+ "República Checa": {
+  "ciudad": "Praga",
+  "km": 1773,
+  "horas": 2.7
+ },
+ "Polonia": {
+  "ciudad": "Varsovia",
+  "km": 2290,
+  "horas": 3.4
+ },
+ "Reino Unido": {
+  "ciudad": "Londres",
+  "km": 1263,
+  "horas": 2.1
+ },
+ "Japón": {
+  "ciudad": "Tokio",
+  "km": 10762,
+  "horas": 14.0
+ },
+ "Corea del Sur": {
+  "ciudad": "Seúl",
+  "km": 9995,
+  "horas": 13.0
+ },
+ "Tailandia": {
+  "ciudad": "Bangkok",
+  "km": 10182,
+  "horas": 13.2
+ },
+ "Vietnam": {
+  "ciudad": "Hanói",
+  "km": 10041,
+  "horas": 13.1
+ },
+ "Turquía": {
+  "ciudad": "Estambul",
+  "km": 2739,
+  "horas": 3.9
+ },
+ "Emiratos Árabes Unidos": {
+  "ciudad": "Dubái",
+  "km": 5656,
+  "horas": 7.6
+ },
+ "Indonesia": {
+  "ciudad": "Yakarta",
+  "km": 12189,
+  "horas": 15.7
+ },
+ "India": {
+  "ciudad": "Delhi",
+  "km": 7274,
+  "horas": 9.6
+ },
+ "Nepal": {
+  "ciudad": "Katmandú",
+  "km": 7979,
+  "horas": 10.5
+ },
+ "Sri Lanka": {
+  "ciudad": "Colombo",
+  "km": 8965,
+  "horas": 11.7
+ },
+ "Estados Unidos": {
+  "ciudad": "Nueva York",
+  "km": 5768,
+  "horas": 7.7
+ },
+ "Canadá": {
+  "ciudad": "Toronto",
+  "km": 6036,
+  "horas": 8.0
+ },
+ "México": {
+  "ciudad": "Ciudad de México",
+  "km": 9063,
+  "horas": 11.8
+ },
+ "Costa Rica": {
+  "ciudad": "San José",
+  "km": 8483,
+  "horas": 11.1
+ },
+ "Panamá": {
+  "ciudad": "Ciudad de Panamá",
+  "km": 8163,
+  "horas": 10.7
+ },
+ "Colombia": {
+  "ciudad": "Bogotá",
+  "km": 8012,
+  "horas": 10.5
+ },
+ "Perú": {
+  "ciudad": "Lima",
+  "km": 9509,
+  "horas": 12.4
+ },
+ "Brasil": {
+  "ciudad": "São Paulo",
+  "km": 8385,
+  "horas": 11.0
+ },
+ "Argentina": {
+  "ciudad": "Buenos Aires",
+  "km": 10045,
+  "horas": 13.1
+ },
+ "Chile": {
+  "ciudad": "Santiago",
+  "km": 10702,
+  "horas": 13.9
+ },
+ "Marruecos": {
+  "ciudad": "Casablanca",
+  "km": 835,
+  "horas": 1.5
+ },
+ "Túnez": {
+  "ciudad": "Túnez",
+  "km": 1270,
+  "horas": 2.1
+ },
+ "Egipto": {
+  "ciudad": "El Cairo",
+  "km": 3351,
+  "horas": 4.7
+ },
+ "Senegal": {
+  "ciudad": "Dakar",
+  "km": 3154,
+  "horas": 4.4
+ },
+ "Kenia": {
+  "ciudad": "Nairobi",
+  "km": 6190,
+  "horas": 8.2
+ },
+ "Tanzania": {
+  "ciudad": "Dar es Salaam",
+  "km": 6840,
+  "horas": 9.0
+ },
+ "Sudáfrica": {
+  "ciudad": "Johannesburgo",
+  "km": 8103,
+  "horas": 10.6
+ },
+ "Seychelles": {
+  "ciudad": "Mahé",
+  "km": 7819,
+  "horas": 10.3
+ },
+ "Australia": {
+  "ciudad": "Sídney",
+  "km": 17685,
+  "horas": 22.6
+ },
+ "Nueva Zelanda": {
+  "ciudad": "Auckland",
+  "km": 19597,
+  "horas": 25.0
+ }
+}

@@ -1,0 +1,318 @@
+{
+ "preguntas": [
+  {
+   "id": "Q1",
+   "texto": "¿Cuál es tu presupuesto diario en destino, sin contar el vuelo (€)?",
+   "tipo": "numero",
+   "hecho": "presupuesto_diario",
+   "bloque": "restriccion",
+   "min": 10,
+   "max": 1000
+  },
+  {
+   "id": "Q2",
+   "texto": "¿Cuántos días vas a viajar?",
+   "tipo": "numero",
+   "hecho": "dias",
+   "bloque": "restriccion",
+   "min": 1,
+   "max": 60
+  },
+  {
+   "id": "Q3",
+   "texto": "¿En qué mes viajas?",
+   "tipo": "categoria_unica",
+   "hecho": "mes",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": 1,
+     "etiqueta": "Enero"
+    },
+    {
+     "valor": 2,
+     "etiqueta": "Febrero"
+    },
+    {
+     "valor": 3,
+     "etiqueta": "Marzo"
+    },
+    {
+     "valor": 4,
+     "etiqueta": "Abril"
+    },
+    {
+     "valor": 5,
+     "etiqueta": "Mayo"
+    },
+    {
+     "valor": 6,
+     "etiqueta": "Junio"
+    },
+    {
+     "valor": 7,
+     "etiqueta": "Julio"
+    },
+    {
+     "valor": 8,
+     "etiqueta": "Agosto"
+    },
+    {
+     "valor": 9,
+     "etiqueta": "Septiembre"
+    },
+    {
+     "valor": 10,
+     "etiqueta": "Octubre"
+    },
+    {
+     "valor": 11,
+     "etiqueta": "Noviembre"
+    },
+    {
+     "valor": 12,
+     "etiqueta": "Diciembre"
+    }
+   ]
+  },
+  {
+   "id": "Q4",
+   "texto": "¿Cuántas horas de vuelo como máximo?",
+   "tipo": "numero",
+   "hecho": "horas_max",
+   "bloque": "restriccion",
+   "min": 1,
+   "max": 24
+  },
+  {
+   "id": "Q5",
+   "texto": "¿Con quién viajas?",
+   "tipo": "categoria_unica",
+   "hecho": "companeros",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": "solo",
+     "etiqueta": "Solo"
+    },
+    {
+     "valor": "pareja",
+     "etiqueta": "En pareja"
+    },
+    {
+     "valor": "ninos",
+     "etiqueta": "Con niños"
+    },
+    {
+     "valor": "grupo",
+     "etiqueta": "Grupo de amigos"
+    }
+   ]
+  },
+  {
+   "id": "Q6",
+   "texto": "¿Qué trámite máximo aceptas para entrar al país?",
+   "tipo": "categoria_unica",
+   "hecho": "max_tramite",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": 0,
+     "etiqueta": "Ninguno: solo DNI o pasaporte"
+    },
+    {
+     "valor": 1,
+     "etiqueta": "Autorización electrónica (ETA/ESTA)"
+    },
+    {
+     "valor": 2,
+     "etiqueta": "Visado a la llegada o electrónico"
+    },
+    {
+     "valor": 3,
+     "etiqueta": "Visado en consulado"
+    }
+   ]
+  },
+  {
+   "id": "Q7",
+   "texto": "¿Aceptas ponerte vacunas o tomar profilaxis si el destino las recomienda?",
+   "tipo": "categoria_unica",
+   "hecho": "acepta_vacunas",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": "Sí",
+     "etiqueta": "Sí"
+    },
+    {
+     "valor": "No",
+     "etiqueta": "No"
+    }
+   ]
+  },
+  {
+   "id": "Q8",
+   "texto": "¿Aceptas destinos con nivel de riesgo alto (según el Global Peace Index)?",
+   "tipo": "categoria_unica",
+   "hecho": "acepta_riesgo",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": "Sí",
+     "etiqueta": "Sí"
+    },
+    {
+     "valor": "No",
+     "etiqueta": "No"
+    }
+   ]
+  },
+  {
+   "id": "Q9",
+   "texto": "¿Qué clima buscas en ese mes?",
+   "tipo": "categoria_unica",
+   "hecho": "clima",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": "calido",
+     "etiqueta": "Cálido (22 °C o más)"
+    },
+    {
+     "valor": "templado",
+     "etiqueta": "Templado (12-22 °C)"
+    },
+    {
+     "valor": "frio",
+     "etiqueta": "Fresco (menos de 12 °C)"
+    },
+    {
+     "valor": "indiferente",
+     "etiqueta": "Me da igual"
+    }
+   ]
+  },
+  {
+   "id": "Q10",
+   "texto": "¿Te molesta que llueva mucho en ese mes?",
+   "tipo": "categoria_unica",
+   "hecho": "tolera_lluvia",
+   "bloque": "restriccion",
+   "opciones": [
+    {
+     "valor": "Sí",
+     "etiqueta": "No me molesta"
+    },
+    {
+     "valor": "No",
+     "etiqueta": "Sí me molesta"
+    }
+   ]
+  },
+  {
+   "id": "E_clima",
+   "texto": "¿Cuánto te importa que el clima sea el que has elegido?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_clima",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_playa",
+   "texto": "¿Cuánto te apetece un viaje con playa?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_playa",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_cultura",
+   "texto": "¿Cuánto te apetece ver patrimonio, museos o historia?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_cultura",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_naturaleza",
+   "texto": "¿Cuánto te apetece naturaleza y paisajes?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_naturaleza",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_gastronomia",
+   "texto": "¿Cuánto te apetece disfrutar de la gastronomía local?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_gastronomia",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_precio",
+   "texto": "¿Cuánto te importa que el destino sea barato?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_precio",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_seguridad",
+   "texto": "¿Cuánto te importa que el destino sea muy seguro?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_seguridad",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  },
+  {
+   "id": "E_ingles",
+   "texto": "¿Cuánto te importa poder comunicarte en inglés?",
+   "tipo": "escala_1_5",
+   "hecho": "peso_ingles",
+   "bloque": "preferencia",
+   "etiquetas": {
+    "1": "Poco",
+    "5": "Mucho"
+   },
+   "permite_me_da_igual": true,
+   "opcional": true
+  }
+ ]
+}

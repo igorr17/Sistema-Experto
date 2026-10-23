@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="580" viewBox="0 0 1300 580" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker>
+  </defs>
+  <rect width="1300" height="580" fill="#ffffff"/>
+  <text x="20" y="32" font-size="20" font-weight="bold" fill="#111">Sistema experto de recomendación de países: componentes y flujo</text>
+
+  <!-- Usuario -->
+  <rect x="20" y="230" width="120" height="80" rx="8" fill="#eeeeee" stroke="#555" stroke-width="1.5"/>
+  <text x="80" y="275" text-anchor="middle" font-size="16" font-weight="bold">Usuario</text>
+
+  <!-- Interfaz -->
+  <rect x="190" y="220" width="180" height="100" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <text x="280" y="252" text-anchor="middle" font-size="16" font-weight="bold">1. Interfaz</text>
+  <text x="280" y="274" text-anchor="middle" font-size="12">Preguntas, botones,</text>
+  <text x="280" y="291" text-anchor="middle" font-size="12">selección única y múltiple,</text>
+  <text x="280" y="308" text-anchor="middle" font-size="12">muestra el resultado</text>
+
+  <!-- Base de hechos -->
+  <rect x="440" y="220" width="190" height="100" rx="8" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <text x="535" y="252" text-anchor="middle" font-size="16" font-weight="bold">2. Base de hechos</text>
+  <text x="535" y="274" text-anchor="middle" font-size="12">Respuestas de la sesión</text>
+  <text x="535" y="291" text-anchor="middle" font-size="12">y hechos derivados</text>
+  <text x="535" y="308" text-anchor="middle" font-size="12">(países descartados, puntos)</text>
+
+  <!-- Motor -->
+  <rect x="700" y="220" width="200" height="100" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="1.5"/>
+  <text x="800" y="252" text-anchor="middle" font-size="16" font-weight="bold">3. Motor de inferencia</text>
+  <text x="800" y="274" text-anchor="middle" font-size="12">Filtros eliminatorios,</text>
+  <text x="800" y="291" text-anchor="middle" font-size="12">puntuación ponderada,</text>
+  <text x="800" y="308" text-anchor="middle" font-size="12">elige la siguiente pregunta</text>
+
+  <!-- Base de conocimiento -->
+  <rect x="650" y="40" width="300" height="100" rx="8" fill="#fce7f3" stroke="#be185d" stroke-width="1.5"/>
+  <text x="800" y="72" text-anchor="middle" font-size="16" font-weight="bold">4. Base de conocimiento</text>
+  <text x="800" y="94" text-anchor="middle" font-size="12">40 países x 11 atributos + clima (fuente y fecha)</text>
+  <text x="800" y="111" text-anchor="middle" font-size="12">+ 18 reglas + 18 preguntas</text>
+  <text x="800" y="128" text-anchor="middle" font-size="12">Fichero JSON en el repositorio</text>
+
+  <!-- Explicación -->
+  <rect x="425" y="420" width="220" height="100" rx="8" fill="#ede9fe" stroke="#6d28d9" stroke-width="1.5"/>
+  <text x="535" y="452" text-anchor="middle" font-size="16" font-weight="bold">5. Módulo de explicación</text>
+  <text x="535" y="474" text-anchor="middle" font-size="12">Reglas disparadas, motivo</text>
+  <text x="535" y="491" text-anchor="middle" font-size="12">de cada país descartado</text>
+  <text x="535" y="508" text-anchor="middle" font-size="12">y top 3 justificado</text>
+
+  <!-- Flechas usuario-interfaz -->
+  <line x1="140" y1="255" x2="188" y2="255" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="188" y1="290" x2="142" y2="290" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="165" y="246" text-anchor="middle" font-size="10">respuestas</text>
+  <text x="165" y="308" text-anchor="middle" font-size="10">resultado</text>
+
+  <!-- Interfaz -> hechos -->
+  <line x1="370" y1="270" x2="438" y2="270" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="404" y="262" text-anchor="middle" font-size="10">respuestas</text>
+
+  <!-- Hechos <-> motor -->
+  <line x1="630" y1="248" x2="698" y2="248" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="664" y="240" text-anchor="middle" font-size="10">hechos</text>
+  <line x1="698" y1="294" x2="632" y2="294" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="664" y="310" text-anchor="middle" font-size="10">derivados</text>
+
+  <!-- KB -> motor -->
+  <line x1="800" y1="140" x2="800" y2="218" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="808" y="182" font-size="10">reglas y datos</text>
+
+  <!-- Motor -> interfaz: siguiente pregunta -->
+  <polyline points="720,220 720,185 280,185 280,218" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="500" y="178" text-anchor="middle" font-size="10">siguiente pregunta</text>
+
+  <!-- Motor -> explicación -->
+  <polyline points="800,320 800,470 647,470" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="808" y="400" font-size="10">reglas disparadas</text>
+
+  <!-- Explicación -> interfaz -->
+  <polyline points="425,470 280,470 280,322" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="360" y="462" text-anchor="middle" font-size="10">top 3 + explicación</text>
+
+  <!-- Nota almacenamiento -->
+  <rect x="960" y="200" width="320" height="150" rx="8" fill="#f9fafb" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="975" y="228" font-size="14" font-weight="bold">Almacenamiento</text>
+  <text x="975" y="252" font-size="12">Conocimiento: fichero JSON en GitHub.</text>
+  <text x="975" y="272" font-size="12">Sesión: en memoria del navegador.</text>
+  <text x="975" y="292" font-size="12">No hay base de datos ni claves.</text>
+  <text x="975" y="318" font-size="12">Motivo: datos estáticos y pocos,</text>
+  <text x="975" y="336" font-size="12">se versionan junto al código.</text>
+</svg>

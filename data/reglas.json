@@ -1,0 +1,380 @@
+{
+ "criterios": [
+  {
+   "id": "playa",
+   "atributo": "playa",
+   "metodo": "mapa",
+   "mapa": {
+    "Sí": 5,
+    "No": 1
+   }
+  },
+  {
+   "id": "cultura",
+   "atributo": "patrimonio_cultural",
+   "metodo": "quintil",
+   "invertir": false
+  },
+  {
+   "id": "naturaleza",
+   "atributo": "naturaleza",
+   "metodo": "quintil",
+   "invertir": false
+  },
+  {
+   "id": "gastronomia",
+   "atributo": "gastronomia",
+   "metodo": "quintil",
+   "invertir": false
+  },
+  {
+   "id": "precio",
+   "atributo": "coste_diario",
+   "metodo": "quintil",
+   "invertir": true
+  },
+  {
+   "id": "seguridad",
+   "atributo": "seguridad",
+   "metodo": "mapa",
+   "mapa": {
+    "Bajo riesgo": 5,
+    "Riesgo medio": 3,
+    "Riesgo alto": 1
+   }
+  },
+  {
+   "id": "ingles",
+   "atributo": "ingles",
+   "metodo": "mapa",
+   "mapa": {
+    "Muy alto": 5,
+    "Alto": 4,
+    "Moderado": 3,
+    "Bajo": 2,
+    "Muy bajo": 1
+   }
+  },
+  {
+   "id": "clima",
+   "atributo": "clima",
+   "metodo": "dinamico",
+   "descripcion": "Afinidad calculada en ejecución con el mes y el clima elegidos (regla P2)"
+  }
+ ],
+ "reglas": [
+  {
+   "id": "F1",
+   "tipo": "filtro",
+   "nombre": "Coste diario sobre presupuesto",
+   "si": [
+    {
+     "izq": "pais.coste_diario",
+     "op": ">",
+     "der": "hecho.presupuesto_diario"
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "El coste diario medio ({pais.coste_diario} €) supera tu presupuesto diario ({hecho.presupuesto_diario} €)."
+   },
+   "fuente": "Budget Your Trip",
+   "umbral_propio": false,
+   "justificacion": ""
+  },
+  {
+   "id": "F2",
+   "tipo": "filtro",
+   "nombre": "Vuelo más largo del máximo",
+   "si": [
+    {
+     "izq": "pais.horas_vuelo",
+     "op": ">",
+     "der": "hecho.horas_max"
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "El vuelo estimado ({pais.horas_vuelo} h) supera tu máximo ({hecho.horas_max} h)."
+   },
+   "fuente": "Cálculo propio por distancia",
+   "umbral_propio": false,
+   "justificacion": ""
+  },
+  {
+   "id": "F3",
+   "tipo": "filtro",
+   "nombre": "Viaje corto y vuelo largo",
+   "si": [
+    {
+     "izq": "hecho.dias",
+     "op": "<=",
+     "der": 5
+    },
+    {
+     "izq": "pais.horas_vuelo",
+     "op": ">",
+     "der": 8
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "Con {hecho.dias} días, un vuelo de {pais.horas_vuelo} h deja poco tiempo en destino."
+   },
+   "fuente": "Cálculo propio por distancia",
+   "umbral_propio": true,
+   "justificacion": "Umbrales de 5 días y 8 h: criterio propio. Justificar con el reparto de horas de vuelo de los 40 países."
+  },
+  {
+   "id": "F4",
+   "tipo": "filtro",
+   "nombre": "Trámite de entrada superior al aceptado",
+   "si": [
+    {
+     "izq": "pais.nivel_tramite",
+     "op": ">",
+     "der": "hecho.max_tramite"
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "Entrar en este país exige: {pais.entrada_espanoles}, un trámite de nivel {pais.nivel_tramite} y tu máximo aceptado es {hecho.max_tramite}."
+   },
+   "fuente": "Ministerio de Asuntos Exteriores",
+   "umbral_propio": false,
+   "justificacion": ""
+  },
+  {
+   "id": "F5",
+   "tipo": "filtro",
+   "nombre": "Riesgo alto no aceptado",
+   "si": [
+    {
+     "izq": "pais.seguridad",
+     "op": "==",
+     "der": "Riesgo alto"
+    },
+    {
+     "izq": "hecho.acepta_riesgo",
+     "op": "==",
+     "der": "No"
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "El destino tiene nivel de riesgo alto y no aceptas riesgo."
+   },
+   "fuente": "Global Peace Index 2026 (umbral propio en Atributos)",
+   "umbral_propio": false,
+   "justificacion": ""
+  },
+  {
+   "id": "F6",
+   "tipo": "filtro",
+   "nombre": "Vacunas recomendadas no aceptadas",
+   "si": [
+    {
+     "izq": "pais.sanitarios",
+     "op": "==",
+     "der": "Recomendaciones relevantes"
+    },
+    {
+     "izq": "hecho.acepta_vacunas",
+     "op": "==",
+     "der": "No"
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "La ficha oficial recomienda vacunas o profilaxis por riesgo endémico y no las aceptas."
+   },
+   "fuente": "Ministerio de Asuntos Exteriores (ficha del país, apartado Vacunas)",
+   "umbral_propio": false,
+   "justificacion": ""
+  },
+  {
+   "id": "F7",
+   "tipo": "filtro",
+   "nombre": "Niños y seguridad",
+   "si": [
+    {
+     "izq": "hecho.companeros",
+     "op": "==",
+     "der": "ninos"
+    },
+    {
+     "izq": "pais.seguridad",
+     "op": "!=",
+     "der": "Bajo riesgo"
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "Viajas con niños y el destino no es de bajo riesgo."
+   },
+   "fuente": "Global Peace Index 2026",
+   "umbral_propio": false,
+   "justificacion": ""
+  },
+  {
+   "id": "F10",
+   "tipo": "filtro_por_criterio",
+   "nombre": "Requisito imprescindible (peso 5)",
+   "para_cada": [
+    "playa",
+    "cultura",
+    "naturaleza",
+    "gastronomia",
+    "precio",
+    "seguridad",
+    "ingles",
+    "clima"
+   ],
+   "si": [
+    {
+     "izq": "hecho.peso_{criterio}",
+     "op": "==",
+     "der": 5
+    },
+    {
+     "izq": "pais.afinidad.{criterio}",
+     "op": "<",
+     "der": 4
+    }
+   ],
+   "entonces": {
+    "accion": "descartar",
+    "motivo": "Marcaste {criterio} 5/5: este país no cumple ese requisito (afinidad {pais.afinidad.{criterio}}/5)."
+   },
+   "fuente": "Preferencia del usuario + datos de la base de conocimiento",
+   "umbral_propio": false,
+   "justificacion": "Un 5 se interpreta como requisito: el país debe tener afinidad 4 o 5."
+  },
+  {
+   "id": "P1",
+   "tipo": "puntuacion",
+   "nombre": "Compatibilidad ponderada",
+   "criterios": [
+    "playa",
+    "cultura",
+    "naturaleza",
+    "gastronomia",
+    "precio",
+    "seguridad",
+    "ingles",
+    "clima"
+   ],
+   "formula": "suma(peso*afinidad) / suma(5*peso) * 100",
+   "afinidad_sin_dato": 3,
+   "entonces": {
+    "accion": "puntuar",
+    "explicacion": "{criterio}: peso {peso} x afinidad {afinidad}"
+   },
+   "fuente": "Datos de la base de conocimiento (ver criterios)",
+   "umbral_propio": false,
+   "justificacion": "Afinidad por quintiles de los 40 países o por mapa fijo; peso 0 = el criterio no cuenta."
+  },
+  {
+   "id": "P2",
+   "tipo": "puntuacion",
+   "nombre": "Ajuste de clima del mes",
+   "descripcion": "El clima no elimina países: puntúa. Afinidad de clima de un país = según la distancia d (en °C) entre la temperatura media del mes elegido y el rango buscado (cálido >= 22 °C, templado 12 a 22 °C, fresco < 12 °C): d = 0 da 5; d <= 3 da 4; d <= 6 da 3; d <= 10 da 2; más, 1. Si el usuario no tolera lluvia y la precipitación del mes supera 150 mm, se resta 1 (mínimo 1). Clima 'indiferente' = el criterio no cuenta. El peso lo da la pregunta E_clima; con peso 5 actúa como requisito (F10).",
+   "fuente": "Banco Mundial (Climate Change Knowledge Portal)",
+   "umbral_propio": true,
+   "justificacion": "Rangos 12 y 22 °C, tramos de 3 °C y límite de 150 mm: criterio propio. Antes eran filtros eliminatorios, pero con clima templado descartaban de media 28 de los 40 países."
+  },
+  {
+   "id": "C1",
+   "tipo": "conflicto",
+   "nombre": "Playa y clima fresco",
+   "si": [
+    {
+     "izq": "hecho.peso_playa",
+     "op": ">=",
+     "der": 4
+    },
+    {
+     "izq": "hecho.clima",
+     "op": "==",
+     "der": "frio"
+    }
+   ],
+   "entonces": {
+    "accion": "avisar",
+    "mensaje": "Pides mucha playa y clima fresco a la vez. Elige cuál pesa más."
+   }
+  },
+  {
+   "id": "C2",
+   "tipo": "conflicto",
+   "nombre": "Viaje corto de larga distancia",
+   "si": [
+    {
+     "izq": "hecho.dias",
+     "op": "<=",
+     "der": 4
+    },
+    {
+     "izq": "hecho.horas_max",
+     "op": ">",
+     "der": 10
+    }
+   ],
+   "entonces": {
+    "accion": "avisar",
+    "mensaje": "Con pocos días, un vuelo largo deja poco tiempo en destino."
+   }
+  },
+  {
+   "id": "C3",
+   "tipo": "conflicto",
+   "nombre": "Máxima seguridad y riesgo aceptado",
+   "si": [
+    {
+     "izq": "hecho.peso_seguridad",
+     "op": "==",
+     "der": 5
+    },
+    {
+     "izq": "hecho.acepta_riesgo",
+     "op": "==",
+     "der": "Sí"
+    }
+   ],
+   "entonces": {
+    "accion": "avisar",
+    "mensaje": "Pides máxima seguridad pero aceptas riesgo. Se aplicará la máxima seguridad."
+   }
+  },
+  {
+   "id": "D1",
+   "tipo": "sistema",
+   "nombre": "Dato del país sin dato",
+   "descripcion": "Si un atributo necesario es SIN DATO, la regla no se aplica (no se descarta); en la puntuación la afinidad vale 3 y se muestra 'dato no disponible'."
+  },
+  {
+   "id": "D2",
+   "tipo": "sistema",
+   "nombre": "Pregunta sin responder",
+   "descripcion": "Si el usuario no responde una pregunta de restricción, no se aplica ese filtro y se avisa. En una escala 1-5, 'Me da igual' = peso 0."
+  },
+  {
+   "id": "M1",
+   "tipo": "sistema",
+   "nombre": "Mejor ajuste por debajo del 70 %",
+   "descripcion": "Se calcula la compatibilidad de los países mostrados (los que cumplen todos los filtros o, si ninguno los cumple, los que menos reglas incumplen: orden menos reglas incumplidas, luego mayor compatibilidad). Si el mejor supera o iguala el 70 %, se muestran sin aviso de error (si no cumplen todo, se rotulan 'Los que más se ajustan' con cada regla incumplida y su margen, ej. coste 165 € frente a presupuesto 120 €). Solo si ninguno llega al 70 % se muestra el aviso 'Ningún país supera el 70 % de compatibilidad; estos son los que más se ajustan' y se propone relajar el filtro que más países descartó (si es F10, bajar el 5 a 4)."
+  },
+  {
+   "id": "M2",
+   "tipo": "sistema",
+   "nombre": "Menos de 3 países válidos",
+   "descripcion": "Si cumplen todos los filtros menos de 3 países, mostrarlos primero y completar hasta 3 con los que más se ajustan (menos reglas incumplidas), marcados como tales."
+  },
+  {
+   "id": "M3",
+   "tipo": "sistema",
+   "nombre": "Empate",
+   "descripcion": "Desempatar por más criterios con afinidad 4 o 5 y, si persiste, por menor coste diario."
+  }
+ ]
+}
