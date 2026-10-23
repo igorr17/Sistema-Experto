@@ -34,10 +34,6 @@ interface ResultsViewProps {
   onRestart: () => void;
   onApplyRelaxation?: (criterioId?: string, reglaId?: string) => void;
   onUpdateHecho: (clave: string, valor: any) => void;
-  modoEvaluacion: 'flexible' | 'estricto';
-  onToggleModo: (modo: 'flexible' | 'estricto') => void;
-  umbralMinimo: number;
-  onChangeUmbral: (umbral: number) => void;
 }
 
 const NOMBRES_MESES = [
@@ -51,10 +47,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onRestart,
   onApplyRelaxation,
   onUpdateHecho,
-  modoEvaluacion,
-  onToggleModo,
-  umbralMinimo,
-  onChangeUmbral,
 }) => {
   const [modalExplicacion, setModalExplicacion] = useState<ExplicacionCompletaPais | null>(null);
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
@@ -137,9 +129,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
             Recomendaciones para tu viaje
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            {modoEvaluacion === 'flexible'
-              ? `Modo flexible activo (mínimo ${umbralMinimo}%): se calculan porcentajes globales y se destacan opciones no disponibles sin descartar.`
-              : `Modo estricto activo: cualquier filtro no cumplido elimina el país inmediatamente.`}
+            Modo flexible por defecto (umbral M1 fijo en 70%): garantiza un Top 3 destacando los destinos recomendados y alternativas que más se ajustan.
           </p>
         </div>
 
@@ -191,30 +181,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
               </>
             )}
           </button>
-
-          {/* Selector de Modo */}
-          <div className="flex rounded-xl bg-slate-100 p-0.5 text-xs font-semibold">
-            <button
-              onClick={() => onToggleModo('flexible')}
-              className={`px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                modoEvaluacion === 'flexible'
-                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Flexible
-            </button>
-            <button
-              onClick={() => onToggleModo('estricto')}
-              className={`px-2.5 py-1.5 rounded-lg transition-all cursor-pointer ${
-                modoEvaluacion === 'estricto'
-                  ? 'bg-white text-indigo-700 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Estricto
-            </button>
-          </div>
 
           <button
             onClick={onRestart}
@@ -588,7 +554,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
                 Otros destinos ordenados por compatibilidad ({restoPaises.length})
               </h3>
               <p className="text-xs text-slate-500">
-                Superan el umbral del {umbralMinimo}%. Los avisos señalan si alguna opción particular no está disponible.
+                Destinos ordenados por afinidad de preferencias. Los avisos señalan si alguna opción particular tiene restricciones o márgenes.
               </p>
             </div>
           </div>

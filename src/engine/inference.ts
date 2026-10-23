@@ -21,6 +21,11 @@ import {
 } from './types';
 
 /**
+ * Constante del umbral M1 fijo al 70 % según especificación.
+ */
+export const UMBRAL_M1_FIJO = 70;
+
+/**
  * Genera el margen legible de incumplimiento para una regla de filtro.
  */
 function calcularMargenRegla(regla: Regla, pais: Pais, hechos: HechosUsuario, criterio?: string): string {
@@ -458,9 +463,9 @@ export function ejecutarInferencia(
     };
   }
 
-  if (mejorCompatibilidad < 70) {
+  if (mejorCompatibilidad < UMBRAL_M1_FIJO) {
     avisoM1Activo = true;
-    mensajeM1 = 'Ningún país supera el 70 % de compatibilidad; estos son los que más se ajustan.';
+    mensajeM1 = `Ningún país supera el ${UMBRAL_M1_FIJO} % de compatibilidad; estos son los que más se ajustan.`;
     avisosSistema.push(mensajeM1);
   }
 

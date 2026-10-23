@@ -94,14 +94,11 @@ export default function App() {
     navigateTo('home');
   };
 
-  const [modoEvaluacion, setModoEvaluacion] = useState<'flexible' | 'estricto'>('flexible');
-  const [umbralMinimo, setUmbralMinimo] = useState<number>(60);
-
-  // Motor de inferencia en tiempo real
+  // Motor de inferencia en tiempo real (modo flexible con umbral M1 fijo en 70% por defecto)
   const resultadoInferencia = useMemo(() => {
     if (!kb) return null;
-    return ejecutarInferencia(kb, hechos, { modo: modoEvaluacion, umbralMinimo });
-  }, [kb, hechos, modoEvaluacion, umbralMinimo]);
+    return ejecutarInferencia(kb, hechos);
+  }, [kb, hechos]);
 
   // Manejo de relajación de filtro (regla M1)
   const handleApplyRelaxation = (criterioId?: string, reglaId?: string) => {
@@ -215,10 +212,6 @@ export default function App() {
             onRestart={handleReset}
             onApplyRelaxation={handleApplyRelaxation}
             onUpdateHecho={handleAnswer}
-            modoEvaluacion={modoEvaluacion}
-            onToggleModo={setModoEvaluacion}
-            umbralMinimo={umbralMinimo}
-            onChangeUmbral={setUmbralMinimo}
           />
         )}
 
