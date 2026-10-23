@@ -4,6 +4,24 @@ Sistema experto que recomienda un país de viaje entre 40 candidatos. Pregunta r
 
 Trabajo de la Unidad 5 (Modelos de IA), especialidad de IA y Big Data, CEBANC.
 
+## Objetivo y alcance
+
+Objetivo: ayudar a decidir a qué país viajar cuando todavía no hay destino, con una recomendación que se pueda justificar regla a regla y dato a dato.
+
+Qué resuelve:
+
+- Recomienda entre 40 países a partir de 10 restricciones (presupuesto, días, mes, horas de vuelo, compañeros, trámite de entrada, vacunas, riesgo, clima y lluvia) y 8 preferencias con peso.
+- Descarta los países que incumplen alguna restricción y explica con qué regla y por qué margen.
+- Responde también ante datos incompletos (SIN DATO), preferencias contradictorias y casos sin ningún país válido.
+
+Qué queda fuera:
+
+- Países que no están entre los 40 de la base de conocimiento, y destinos o ciudades dentro de un país.
+- Reservas, precios en tiempo real y vuelos concretos: el coste diario es una estimación de Budget Your Trip y las horas de vuelo son un cálculo propio sin escalas desde Madrid.
+- Viajes largos (más de 90 días) y viajeros que no residen en España, porque los requisitos de entrada son los que se aplican a españoles.
+
+Cómo se comprueba que funciona: las 15 pruebas más la 11b de `#/tests` deben pasar (ver [Pruebas](#pruebas)), cada recomendación debe mostrar las reglas y los datos que la justifican, y nunca debe quedar la pantalla de resultados vacía.
+
 ## Acceso
 
 - Aplicación publicada (Google AI Studio): **PENDIENTE: enlace público de la aplicación**
@@ -76,28 +94,30 @@ Puntuación: `compatibilidad = suma(peso x afinidad) / suma(5 x peso) x 100`, co
 
 ## Pruebas
 
-La ruta `#/tests` de la aplicación ejecuta 15 casos reproducibles más el caso 11b, definidos en `src/engine/tests.ts`:
+La ruta `#/tests` de la aplicación ejecuta 15 casos reproducibles más el caso 11b, definidos en `src/engine/tests.ts`. Cada caso parte solo de los hechos indicados; el resto de preguntas queda sin responder.
 
-| N.º | Caso |
-| --- | --- |
-| 1 | Presupuesto 40 €/día |
-| 2 | Horas máximas de vuelo 3 |
-| 3 | Trámite máximo 0 |
-| 4 | No acepta vacunas recomendadas |
-| 5 | No acepta riesgo alto |
-| 6 | Viaje con niños |
-| 7 | Clima con peso 5 (F10) |
-| 8 | Lluvia y ajuste P2 |
-| 9 | Playa con peso 5 |
-| 10 | Todos los pesos a 0 |
-| 11 | Filtros imposibles (10 € y 1 h) |
-| 11b | Ningún país cumple todo pero el mejor tiene compatibilidad alta: sin aviso M1 |
-| 12 | Desempate |
-| 13 | País con SIN DATO (coste diario de Túnez) |
-| 14 | Playa 5 y clima frío: conflicto C1 |
-| 15 | Determinismo: la misma entrada produce la misma salida |
+La columna "Obtenido" recoge la ejecución del 2026-10-23 sobre `public/knowledge.json`: 16 de 16 superadas.
 
-La lista con entrada y resultado esperado está en la memoria, sección 10.
+| N.º | Entrada | Esperado | Obtenido |
+| --- | --- | --- | --- |
+| 1 | Presupuesto 40 €/día | Ningún país con coste diario superior a 40 € cumple todos los filtros (F1) | Superada: 3 países cumplen, todos con 40 € o menos |
+| 2 | Horas máximas de vuelo 3 | Solo quedan países con 3 h de vuelo o menos (F2) | Superada: quedan 8 países, todos con 3 h o menos |
+| 3 | Trámite máximo 0 | Ningún país con trámite de entrada previo cumple los filtros (F4) | Superada: quedan 27 países, todos sin trámite previo |
+| 4 | No acepta vacunas | Ningún país con recomendaciones sanitarias relevantes cumple los filtros (F6) | Superada: quedan 31 países sin recomendaciones relevantes |
+| 5 | No acepta riesgo alto | Ningún país con riesgo alto cumple los filtros (F5) | Superada: quedan 32 países, ninguno con riesgo alto |
+| 6 | Viaja con niños | Solo quedan países de bajo riesgo (F7) | Superada: quedan 13 países de bajo riesgo |
+| 7 | Enero, clima cálido, peso del clima 5 | Solo cumplen países con afinidad de clima 4 o más (F10) | Superada: quedan 16 países con afinidad de clima 4 o más |
+| 8 | India en julio, clima cálido, con y sin tolerancia a la lluvia | Sin tolerancia, la afinidad de clima baja 1 punto si llueve más de 150 mm (P2) | Superada: la afinidad baja de 5 a 4 |
+| 9 | Peso de playa 5 | Solo quedan países con afinidad de playa 4 o más (F10) | Superada: quedan 27 países con afinidad 4 o 5 |
+| 10 | Los 8 pesos a 0 | No se calcula compatibilidad y se avisa al usuario | Superada: ningún país tiene compatibilidad y se avisa del orden alfabético |
+| 11 | Presupuesto 10 €/día y vuelo máximo 1 h | Ningún país cumple todo; se muestran "Los que más se ajustan" con sus márgenes y el aviso M1 (M2) | Superada: 3 países con márgenes y aviso M1 activo |
+| 11b | Presupuesto 10 €/día, peso de playa 5 y peso de seguridad 5 | Ningún país cumple todo, pero el mejor tiene compatibilidad alta: "Los que más se ajustan" sin aviso M1 | Superada: mejor compatibilidad del 100 % y sin aviso M1 |
+| 12 | Peso de cultura 4 | A igual compatibilidad, primero el país con más criterios con afinidad 4 o 5 y después el de menor coste diario (M3) | Superada: orden de desempate correcto |
+| 13 | Presupuesto 50 €/día y peso de precio 4 | Túnez, con el coste diario en SIN DATO, no se descarta por F1 y su afinidad en precio vale 3 (D1) | Superada: Túnez no se descarta y su afinidad en precio es 3 |
+| 14 | Peso de playa 5 y clima frío | Se muestra el aviso del conflicto C1 | Superada: aviso C1 "Pides mucha playa y clima fresco a la vez. Elige cuál pesa más." |
+| 15 | La misma entrada completa (14 hechos) dos veces | Las dos ejecuciones dan exactamente la misma salida | Superada: mismos países, porcentajes y descartes |
+
+La lista completa con entrada y resultado esperado también está en la memoria, sección 10.
 
 ## Limitaciones
 
