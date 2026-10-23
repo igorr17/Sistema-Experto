@@ -12,8 +12,8 @@
   <!-- Interfaz -->
   <rect x="190" y="220" width="180" height="100" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <text x="280" y="252" text-anchor="middle" font-size="16" font-weight="bold">1. Interfaz</text>
-  <text x="280" y="274" text-anchor="middle" font-size="12">Preguntas, botones,</text>
-  <text x="280" y="291" text-anchor="middle" font-size="12">selección única y múltiple,</text>
+  <text x="280" y="274" text-anchor="middle" font-size="12">18 preguntas, orden fijo:</text>
+  <text x="280" y="291" text-anchor="middle" font-size="12">número, opción o escala 1-5;</text>
   <text x="280" y="308" text-anchor="middle" font-size="12">muestra el resultado</text>
 
   <!-- Base de hechos -->
@@ -28,7 +28,7 @@
   <text x="800" y="252" text-anchor="middle" font-size="16" font-weight="bold">3. Motor de inferencia</text>
   <text x="800" y="274" text-anchor="middle" font-size="12">Filtros eliminatorios,</text>
   <text x="800" y="291" text-anchor="middle" font-size="12">puntuación ponderada,</text>
-  <text x="800" y="308" text-anchor="middle" font-size="12">elige la siguiente pregunta</text>
+  <text x="800" y="308" text-anchor="middle" font-size="12">conflictos y desempates</text>
 
   <!-- Base de conocimiento -->
   <rect x="650" y="40" width="300" height="100" rx="8" fill="#fce7f3" stroke="#be185d" stroke-width="1.5"/>
@@ -64,9 +64,9 @@
   <line x1="800" y1="140" x2="800" y2="218" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
   <text x="808" y="182" font-size="10">reglas y datos</text>
 
-  <!-- Motor -> interfaz: siguiente pregunta -->
-  <polyline points="720,220 720,185 280,185 280,218" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
-  <text x="500" y="178" text-anchor="middle" font-size="10">siguiente pregunta</text>
+  <!-- KB -> interfaz: preguntas en orden fijo -->
+  <polyline points="650,90 280,90 280,218" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="465" y="82" text-anchor="middle" font-size="10">18 preguntas (orden fijo)</text>
 
   <!-- Motor -> explicación -->
   <polyline points="800,320 800,470 647,470" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#a)"/>
