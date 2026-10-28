@@ -25,7 +25,7 @@ Cómo se comprueba que funciona: las 15 pruebas más la 11b de `#/tests` deben p
 ## Acceso
 
 - Aplicación publicada (Google AI Studio): **PENDIENTE: enlace público de la aplicación**
-- Memoria del proyecto: **PENDIENTE: enlace de la memoria**
+- Memoria del proyecto: [`docs/Memoria_sistExperto.docx`](docs/Memoria_sistExperto.docx)
 
 ## Destinatarios
 
@@ -168,5 +168,5 @@ src/
   ui/                   pantallas y componentes de React
   App.tsx               estado de la sesión y navegación por rutas (#/tests, #/rules...)
 data/                   datos de partida, reglas, preguntas y scripts de Python
-docs/                   diagrama de componentes y prompt usado en AI Studio
+docs/                   memoria, diagrama de componentes y prompt usado en AI Studio
 ```
