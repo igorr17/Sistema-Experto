@@ -35,7 +35,7 @@ Personas residentes en España que planean un viaje turístico corto (menos de 9
 
 1. Pulsa "Iniciar cuestionario personalizado" y responde las 18 preguntas: 10 de restricción y 8 de preferencia en escala de 1 a 5.
 2. Ejemplo: presupuesto 120 €/día, 7 días, julio, vuelo máximo 5 h, viaje en pareja, trámite máximo 1 (autorización electrónica), no acepta riesgo alto, clima cálido, playa 5.
-3. El sistema muestra los tres primeros países con su porcentaje de compatibilidad, el dato que justifica cada criterio y los países descartados con la regla que los eliminó. Si ningún país cumple todos los filtros, nunca deja la pantalla vacía: muestra "Los que más se ajustan", con el margen de cada regla incumplida, y la regla M1 avisa cuando la compatibilidad del mejor queda baja.
+3. El sistema muestra los tres primeros países con su porcentaje de compatibilidad, el dato que justifica cada criterio y los países descartados con la regla que los eliminó. Si ningún país cumple todos los filtros, nunca deja la pantalla vacía: muestra "Los que más se ajustan", con el margen de cada regla incumplida, y la regla M1 avisa solo si el mejor de ellos no llega al 70 % de compatibilidad.
 
 ## Componentes
 
@@ -92,6 +92,8 @@ Las reglas están en `data/reglas.json` y se copian a `public/knowledge.json`.
 
 Puntuación: `compatibilidad = suma(peso x afinidad) / suma(5 x peso) x 100`, con peso de 1 a 5 y afinidad de 1 a 5 (quintiles entre los 40 países o mapa fijo). Un 5 en una preferencia se trata como requisito (F10): se descarta el país si su afinidad en ese criterio es menor que 4. Un dato SIN DATO cuenta con afinidad 3 y no descarta el país. Los empates se resuelven con M3: más criterios con afinidad 4 o 5 y, después, menor coste diario.
 
+Umbral M1: es fijo y vale el 70 %. Si el mejor país mostrado no llega al 70 % de compatibilidad, la aplicación muestra el aviso M1, tanto si cumple todos los filtros como si es de los que más se ajustan. Si llega, no hay aviso, aunque los países sigan rotulados como "Los que más se ajustan" (caso 11b). El valor está en la constante `UMBRAL_M1_FIJO` de `src/engine/inference.ts`.
+
 ## Pruebas
 
 La ruta `#/tests` de la aplicación ejecuta 15 casos reproducibles más el caso 11b, definidos en `src/engine/tests.ts`. Cada caso parte solo de los hechos indicados; el resto de preguntas queda sin responder.
@@ -110,8 +112,8 @@ La columna "Obtenido" recoge la ejecución del 2026-10-23 sobre `public/knowledg
 | 8 | India en julio, clima cálido, con y sin tolerancia a la lluvia | Sin tolerancia, la afinidad de clima baja 1 punto si llueve más de 150 mm (P2) | Superada: la afinidad baja de 5 a 4 |
 | 9 | Peso de playa 5 | Solo quedan países con afinidad de playa 4 o más (F10) | Superada: quedan 27 países con afinidad 4 o 5 |
 | 10 | Los 8 pesos a 0 | No se calcula compatibilidad y se avisa al usuario | Superada: ningún país tiene compatibilidad y se avisa del orden alfabético |
-| 11 | Presupuesto 10 €/día y vuelo máximo 1 h | Ningún país cumple todo; se muestran "Los que más se ajustan" con sus márgenes y el aviso M1 (M2) | Superada: 3 países con márgenes y aviso M1 activo |
-| 11b | Presupuesto 10 €/día, peso de playa 5 y peso de seguridad 5 | Ningún país cumple todo, pero el mejor tiene compatibilidad alta: "Los que más se ajustan" sin aviso M1 | Superada: mejor compatibilidad del 100 % y sin aviso M1 |
+| 11 | Presupuesto 10 €/día y vuelo máximo 1 h | Ningún país cumple todo; se muestran "Los que más se ajustan" con sus márgenes y el aviso M1 porque el mejor no llega al 70 % (M2) | Superada: 3 países con márgenes y aviso M1 activo |
+| 11b | Presupuesto 10 €/día, peso de playa 5 y peso de seguridad 5 | Ningún país cumple todo, pero el mejor llega al 70 % o más: "Los que más se ajustan" sin aviso M1 | Superada: mejor compatibilidad del 100 % y sin aviso M1 |
 | 12 | Peso de cultura 4 | A igual compatibilidad, primero el país con más criterios con afinidad 4 o 5 y después el de menor coste diario (M3) | Superada: orden de desempate correcto |
 | 13 | Presupuesto 50 €/día y peso de precio 4 | Túnez, con el coste diario en SIN DATO, no se descarta por F1 y su afinidad en precio vale 3 (D1) | Superada: Túnez no se descarta y su afinidad en precio es 3 |
 | 14 | Peso de playa 5 y clima frío | Se muestra el aviso del conflicto C1 | Superada: aviso C1 "Pides mucha playa y clima fresco a la vez. Elige cuál pesa más." |
