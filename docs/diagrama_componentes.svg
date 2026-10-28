@@ -77,11 +77,12 @@
   <text x="360" y="462" text-anchor="middle" font-size="10">top 3 + explicación</text>
 
   <!-- Nota almacenamiento -->
-  <rect x="960" y="200" width="320" height="150" rx="8" fill="#f9fafb" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
+  <rect x="960" y="200" width="320" height="170" rx="8" fill="#f9fafb" stroke="#999" stroke-width="1" stroke-dasharray="5,4"/>
   <text x="975" y="228" font-size="14" font-weight="bold">Almacenamiento</text>
   <text x="975" y="252" font-size="12">Conocimiento: fichero JSON en GitHub.</text>
   <text x="975" y="272" font-size="12">Sesión: en memoria del navegador.</text>
-  <text x="975" y="292" font-size="12">No hay base de datos ni claves.</text>
-  <text x="975" y="318" font-size="12">Motivo: datos estáticos y pocos,</text>
-  <text x="975" y="336" font-size="12">se versionan junto al código.</text>
+  <text x="975" y="292" font-size="12">Reglas y preguntas añadidas: localStorage.</text>
+  <text x="975" y="312" font-size="12">No hay base de datos ni claves.</text>
+  <text x="975" y="338" font-size="12">Motivo: datos estáticos y pocos,</text>
+  <text x="975" y="356" font-size="12">se versionan junto al código.</text>
 </svg>

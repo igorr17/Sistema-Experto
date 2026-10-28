@@ -44,19 +44,23 @@ Personas residentes en España que planean un viaje turístico corto (menos de 9
 | 1 | Interfaz | `src/ui/` |
 | 2 | Base de hechos | Estado de la sesión en memoria del navegador (`src/App.tsx`) |
 | 3 | Motor de inferencia | `src/engine/` |
-| 4 | Base de conocimiento | `public/knowledge.json`, cargada por `src/data/knowledgeLoader.ts` |
+| 4 | Base de conocimiento | `public/knowledge.json`, cargada por `src/data/knowledgeLoader.ts`, más las reglas y preguntas que añade el usuario (`src/data/customRules.ts` y `src/data/customQuestions.ts`) |
 | 5 | Módulo de explicación | `src/explain/` |
 
 Diagrama: `docs/diagrama_componentes.png` (también en SVG).
 
-Almacenamiento: el conocimiento es un fichero JSON de este repositorio y la sesión vive en memoria. No hay base de datos, servidor ni claves de API. El motor es determinista y no llama a ningún modelo de IA.
+Almacenamiento: el conocimiento base es un fichero JSON de este repositorio y la sesión vive en memoria. Las reglas y preguntas que añade el usuario se guardan en el `localStorage` de su navegador y se suman al conocimiento base al cargar la aplicación; no se escriben en `knowledge.json` ni se comparten entre personas. No hay base de datos, servidor ni claves de API. El motor es determinista y no llama a ningún modelo de IA.
 
 ## Funciones adicionales
 
 - **Comparador de destinos.** En la pantalla de resultados se marcan 2 o 3 países y se abre una comparativa cara a cara: compatibilidad global, coste diario, horas de vuelo, seguridad, requisitos de entrada, restricciones incumplidas, afinidad en los 8 criterios y gráfico de clima del mes elegido.
 - **Simulador de sensibilidad ("¿Qué pasaría si...?").** En la pantalla de resultados permite mover el presupuesto diario, el límite de horas de vuelo, el mes de viaje y el peso de cada uno de los 8 criterios (de 0, que lo ignora, a 5). Las recomendaciones y los porcentajes se recalculan al momento y se pueden restablecer las respuestas originales.
 
-La aplicación también incluye la vista de países descartados, la traza de reglas disparadas por el motor y una ventana de explicación detallada por país.
+- **Recorrido de reglas.** Muestra qué reglas sí sigue el motor y no solo cuáles descartan. En Resultados hay un panel con los pasos del razonamiento (deducciones D1 y D2, filtros superados, ponderación P1 y P2, y metarreglas M1 a M3). La vista de reglas (`#/rules`) tiene tres pestañas: "Reglas que SÍ sigue el proceso", "Base de Conocimiento de Reglas" e "Historial de descartes / Filtros".
+- **Reglas personalizadas.** El botón "Añadir nueva regla" abre un formulario con un identificador, un nombre, una o varias condiciones (campo del país o respuesta del usuario, operador y valor) y un mensaje. Hay dos tipos: un filtro que descarta países y un conflicto que solo avisa. Las reglas añadidas se pueden activar, desactivar y borrar desde la vista de reglas.
+- **Preguntas personalizadas.** El botón "Añadir pregunta" permite crear preguntas de restricción o de preferencia, de opción única, escala de 1 a 5 o número, con plantillas de ejemplo.
+
+La aplicación también incluye la vista de países descartados y una ventana de explicación detallada por país.
 
 ## Tecnologías
 
@@ -88,7 +92,7 @@ Fuentes: Budget Your Trip, Ministerio de Asuntos Exteriores, Global Peace Index 
 | Conflicto (3) | C1 a C3 |
 | Sistema (5) | D1, D2, M1, M2 y M3 |
 
-Las reglas están en `data/reglas.json` y se copian a `public/knowledge.json`.
+Las reglas están en `data/reglas.json` y se copian a `public/knowledge.json`. Son las 18 reglas base; las que añade el usuario se suman a ellas en su navegador y no cuentan en esta cifra.
 
 Puntuación: `compatibilidad = suma(peso x afinidad) / suma(5 x peso) x 100`, con peso de 1 a 5 y afinidad de 1 a 5 (quintiles entre los 40 países o mapa fijo). Un 5 en una preferencia se trata como requisito (F10): se descarta el país si su afinidad en ese criterio es menor que 4. Un dato SIN DATO cuenta con afinidad 3 y no descarta el país. Los empates se resuelven con M3: más criterios con afinidad 4 o 5 y, después, menor coste diario.
 
@@ -128,6 +132,7 @@ La lista completa con entrada y resultado esperado también está en la memoria,
 - Naturaleza y gastronomía miden reconocimientos de la UNESCO, no toda la oferta del país.
 - Horas de vuelo: cálculo sin escalas. Clima: media nacional.
 - 8 datos de 440 están en SIN DATO.
+- Las reglas y preguntas personalizadas viven solo en el navegador de cada persona y se pierden si se borran los datos del sitio.
 
 ## Ejecución en local
 
@@ -162,7 +167,7 @@ El script lee también `reglas.json` y `preguntas.json` de la misma carpeta. `pl
 ```
 public/knowledge.json   base de conocimiento que lee la aplicación
 src/
-  data/                 tipos y carga de knowledge.json
+  data/                 tipos, carga de knowledge.json y reglas y preguntas personalizadas
   engine/               motor de inferencia, evaluador de condiciones y pruebas
   explain/              explicación de cada recomendación y descarte
   ui/                   pantallas y componentes de React
