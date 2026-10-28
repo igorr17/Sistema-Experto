@@ -25,7 +25,7 @@ Cómo se comprueba que funciona: las 15 pruebas más la 11b de `#/tests` deben p
 ## Acceso
 
 - Aplicación publicada (Google AI Studio): **PENDIENTE: enlace público de la aplicación**
-- Memoria del proyecto: [`docs/Memoria_sistExperto.docx`](docs/Memoria_sistExperto.docx)
+- Memoria del proyecto: [`docs/Memoria_sistExperto.pdf`](docs/Memoria_sistExperto.pdf) (versión editable en [`docs/Memoria_sistExperto.docx`](docs/Memoria_sistExperto.docx))
 
 ## Destinatarios
 
