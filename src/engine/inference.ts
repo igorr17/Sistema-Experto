@@ -76,6 +76,26 @@ export function ejecutarInferencia(
   const avisosSistema: string[] = [];
   const conflictos: ConflictoDetectado[] = [];
 
+  // PASO 0: DEDUCCIONES INICIALES (Reglas D1 y D2)
+  if (hechos.mes) {
+    const nombresMeses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const mesNum = Number(hechos.mes);
+    const nombreMes = nombresMeses[mesNum - 1] || `Mes ${mesNum}`;
+    logReglas.push({
+      reglaId: 'D1',
+      reglaNombre: 'Deducción de estacionalidad y mes del viaje',
+      paisNombre: 'Proceso Global',
+      resultado: 'deducida',
+      detalle: `Mes de viaje fijado en ${nombreMes}. Se deducen los perfiles climáticos mensuales de cada destino y se habilita la regla P2.`,
+      tipo: 'deduccion',
+      paso: '1. Deducción',
+      esReglaSeguida: true,
+    });
+  }
+
   // Mapeo rápido de preguntas de restricción para regla D2
   const preguntasRestriccion = kb.preguntas.filter((q) => q.bloque === 'restriccion');
   const preguntasRestriccionSinResponder: string[] = [];
@@ -88,12 +108,32 @@ export function ejecutarInferencia(
   }
 
   if (preguntasRestriccionSinResponder.length > 0) {
-    avisosSistema.push(
-      `Regla D2: Hay ${preguntasRestriccionSinResponder.length} pregunta(s) de restricción sin responder. Los filtros correspondientes no se han aplicado.`
-    );
+    const msgD2 = `Regla D2: Hay ${preguntasRestriccionSinResponder.length} pregunta(s) de restricción sin responder. Los filtros correspondientes no se han aplicado.`;
+    avisosSistema.push(msgD2);
+    logReglas.push({
+      reglaId: 'D2',
+      reglaNombre: 'Tratamiento de restricciones omitidas',
+      paisNombre: 'Proceso Global',
+      resultado: 'aplicada',
+      detalle: msgD2,
+      tipo: 'deduccion',
+      paso: '1. Deducción',
+      esReglaSeguida: true,
+    });
+  } else {
+    logReglas.push({
+      reglaId: 'D2',
+      reglaNombre: 'Tratamiento de restricciones completas',
+      paisNombre: 'Proceso Global',
+      resultado: 'aplicada',
+      detalle: 'Todas las restricciones de viaje fueron respondidas; se aplican los filtros con validación estricta.',
+      tipo: 'deduccion',
+      paso: '1. Deducción',
+      esReglaSeguida: true,
+    });
   }
 
-  // PASO 1: EVALUACIÓN DE FILTROS ELIMINATORIOS (F1 - F7, F10)
+  // PASO 1: EVALUACIÓN DE FILTROS ELIMINATORIOS (F1 - F7, F10 y filtros personalizados)
   const descartadosMap = new Map<number, DescartePais>();
   const reglasSuperadasMap = new Map<number, string[]>();
   const reglasIncumplidasPorPais = new Map<number, ReglaIncumplidaMargen[]>();
@@ -104,8 +144,9 @@ export function ejecutarInferencia(
     { regla: Regla; criterio?: string; total: number }
   >();
 
+  // Filtrar solo reglas activas (si no tiene activa, por defecto es true)
   const reglasFiltro = kb.reglas.filter(
-    (r) => r.tipo === 'filtro' || r.tipo === 'filtro_por_criterio'
+    (r) => (r.tipo === 'filtro' || r.tipo === 'filtro_por_criterio') && r.activa !== false
   );
 
   for (const pais of kb.paises) {
@@ -160,6 +201,9 @@ export function ejecutarInferencia(
             paisNombre: pais.nombre,
             resultado: 'descartado',
             detalle: motivoTexto,
+            tipo: regla.esPersonalizada ? 'personalizada' : 'filtro',
+            paso: '2. Filtros de restricción',
+            esReglaSeguida: false,
           });
         } else {
           reglasSuperadasMap.get(pais.id)!.push(regla.id);
@@ -217,6 +261,9 @@ export function ejecutarInferencia(
               paisNombre: pais.nombre,
               resultado: 'descartado',
               detalle: motivoTexto,
+              tipo: 'filtro',
+              paso: '2. Filtros de restricción',
+              esReglaSeguida: false,
             });
           }
         }
@@ -340,6 +387,34 @@ export function ejecutarInferencia(
     });
   }
 
+  // Log de Regla P1 (Ponderación multicriterio aplicada)
+  logReglas.push({
+    reglaId: 'P1',
+    reglaNombre: 'Puntuación y afinidad multicriterio',
+    paisNombre: 'Todos los destinos',
+    resultado: 'aplicada',
+    detalle: sinPreferenciasIndicadas
+      ? 'Sin preferencias ponderadas (>0): se ordenan alfabéticamente.'
+      : 'Compatibilidad ponderada calculada con la fórmula P1: suma(peso × afinidad) / suma(5 × peso).',
+    tipo: 'puntuacion',
+    paso: '3. Puntuación y afinidad',
+    esReglaSeguida: true,
+  });
+
+  // Log de Regla P2 (Ajuste climático estacional aplicado si procede)
+  if (hechos.clima && hechos.clima !== 'indiferente' && hechos.mes) {
+    logReglas.push({
+      reglaId: 'P2',
+      reglaNombre: 'Ajuste dinámico de afinidad climática',
+      paisNombre: 'Destinos evaluados',
+      resultado: 'aplicada',
+      detalle: `Afinidad climática calculada según distancia térmica para preferencia "${hechos.clima}" en el mes ${hechos.mes}${hechos.tolera_lluvia === 'No' ? ' (con penalización si precipitación > 150 mm)' : ''}.`,
+      tipo: 'puntuacion',
+      paso: '3. Puntuación y afinidad',
+      esReglaSeguida: true,
+    });
+  }
+
   // PASO 3: ORDENACIÓN Y DESEMPATES (Regla M3)
   const ordenarPaises = (a: PaisEvaluado, b: PaisEvaluado): number => {
     if (sinPreferenciasIndicadas || a.compatibilidad === null || b.compatibilidad === null) {
@@ -379,19 +454,12 @@ export function ejecutarInferencia(
     });
 
   // PASO 5: CASOS LÍMITE (REGLAS M1 Y M2)
-  // - Si al menos un país cumple todos los filtros, se muestran esos países sin ningún aviso de error.
-  // - Si ninguno los cumple, o quedan menos de 3, se completa hasta 3 con los países que menos reglas de filtro incumplen.
-  //   Se rotulan "Los que más se ajustan" y cada uno muestra el margen de cada regla incumplida.
-  // - El aviso M1 ("Ningún país supera el 70 % de compatibilidad; estos son los que más se ajustan") solo aparece si el mejor país mostrado tiene compatibilidad < 70 %.
-  // - Nunca una pantalla vacía.
   let paisesMostrados: PaisEvaluado[] = [];
   const paisesAjusteAproximado: PaisEvaluado[] = [];
 
   if (paisesCumplen.length >= 3) {
-    // Caso 1: 3 o más países cumplen todos los filtros
     paisesMostrados = [...paisesCumplen];
   } else if (paisesCumplen.length > 0 && paisesCumplen.length < 3) {
-    // Caso 2: entre 1 y 2 países cumplen todo -> completar hasta 3 con los que menos reglas incumplen
     paisesMostrados = [...paisesCumplen];
     const faltan = 3 - paisesCumplen.length;
     const candidatosAproximados = paisesNoCumplen.slice(0, faltan);
@@ -402,10 +470,7 @@ export function ejecutarInferencia(
       paisesMostrados.push(cand);
     }
   } else {
-    // Caso 3: Ningún país cumple todos los filtros (0 países cumplen)
-    // Se completa hasta al menos 3 con los que menos reglas incumplen
     const minReglas = paisesNoCumplen[0]?.reglasIncumplidas.length ?? 0;
-    // Tomamos al menos 3, o todos los que empatan con el mínimo de reglas incumplidas
     const candidatos = paisesNoCumplen.slice(
       0,
       Math.max(3, paisesNoCumplen.filter((p) => p.reglasIncumplidas.length === minReglas).length)
@@ -427,13 +492,27 @@ export function ejecutarInferencia(
     }
   }
 
-  // Comprobar la compatibilidad del MEJOR país mostrado (máxima afinidad entre los mostrados)
-  const mejorCompatibilidad = Math.max(0, ...paisesMostrados.map((p) => p.compatibilidad ?? 0));
+  // Registrar en la trazabilidad las reglas de filtro que SÍ superaron los destinos recomendados
+  for (const item of paisesMostrados.slice(0, 3)) {
+    for (const rId of item.reglasSuperadas) {
+      const reg = kb.reglas.find((r) => r.id === rId);
+      if (reg) {
+        logReglas.push({
+          reglaId: reg.id,
+          reglaNombre: reg.nombre,
+          paisNombre: item.pais.nombre,
+          resultado: 'superado',
+          detalle: `Filtro superado con éxito: ${reg.nombre}. Cumple los requisitos exigidos por el usuario.`,
+          tipo: reg.esPersonalizada ? 'personalizada' : 'filtro',
+          paso: '2. Filtros superados',
+          esReglaSeguida: true,
+        });
+      }
+    }
+  }
 
-  // Aviso M1: Solo si el mejor país mostrado tiene compatibilidad < 70%
-  let avisoM1Activo = false;
-  let mensajeM1: string | undefined;
-  let sugerenciaRelajacion: SugerenciaRelajacion | undefined;
+  // Comprobar la compatibilidad del MEJOR país mostrado
+  const mejorCompatibilidad = Math.max(0, ...paisesMostrados.map((p) => p.compatibilidad ?? 0));
 
   // Buscar el filtro que más países descartó para propuesta de relajación
   let maxDescartes = -1;
@@ -446,6 +525,7 @@ export function ejecutarInferencia(
     }
   }
 
+  let sugerenciaRelajacion: SugerenciaRelajacion | undefined;
   if (mejorCandidatoFiltro) {
     const { regla, criterio, total } = mejorCandidatoFiltro;
     let sugerenciaTexto = '';
@@ -463,25 +543,69 @@ export function ejecutarInferencia(
     };
   }
 
+  let avisoM1Activo = false;
+  let mensajeM1: string | undefined;
+
   if (mejorCompatibilidad < UMBRAL_M1_FIJO) {
     avisoM1Activo = true;
     mensajeM1 = `Ningún país supera el ${UMBRAL_M1_FIJO} % de compatibilidad; estos son los que más se ajustan.`;
     avisosSistema.push(mensajeM1);
   }
 
-  // PASO 4: CONFLICTOS (Reglas tipo "conflicto")
-  const reglasConflicto = kb.reglas.filter((r) => r.tipo === 'conflicto');
+  // Log de Meta-regla M1
+  logReglas.push({
+    reglaId: 'M1',
+    reglaNombre: 'Control de umbral mínimo de compatibilidad (70%)',
+    paisNombre: 'Recomendaciones',
+    resultado: 'aplicada',
+    detalle: avisoM1Activo
+      ? `Ningún destino supera el ${UMBRAL_M1_FIJO}% (máxima afinidad: ${mejorCompatibilidad}%). Regla M1 activada: se muestran los más cercanos y sugerencia de relajación.`
+      : `El mejor destino alcanza el ${mejorCompatibilidad}% >= ${UMBRAL_M1_FIJO}%. Recomendación sólida confirmada sin aviso M1.`,
+    tipo: 'meta',
+    paso: '4. Meta-reglas del sistema',
+    esReglaSeguida: true,
+  });
+
+  // Log de Meta-regla M2 (Garantía de Top 3)
+  logReglas.push({
+    reglaId: 'M2',
+    reglaNombre: 'Garantía de Top 3 (Completado flexible)',
+    paisNombre: 'Recomendaciones',
+    resultado: 'aplicada',
+    detalle: paisesCumplen.length >= 3
+      ? `${paisesCumplen.length} destinos cumplen el 100% de los filtros obligatorios (Top 3 estricto garantizado).`
+      : `Menos de 3 destinos cumplen todos los filtros (${paisesCumplen.length}). M2 completó hasta 3 con ${paisesAjusteAproximado.length} destinos aproximados minimizando penalizaciones.`,
+    tipo: 'meta',
+    paso: '4. Meta-reglas del sistema',
+    esReglaSeguida: true,
+  });
+
+  // Log de Meta-regla M3 (Resolución de desempates y ordenación)
+  logReglas.push({
+    reglaId: 'M3',
+    reglaNombre: 'Resolución de ordenación y desempates',
+    paisNombre: 'Recomendaciones',
+    resultado: 'aplicada',
+    detalle: 'Ordenación por compatibilidad %, número de afinidades destacadas (4-5) y menor coste diario.',
+    tipo: 'meta',
+    paso: '4. Meta-reglas del sistema',
+    esReglaSeguida: true,
+  });
+
+  // PASO 4: CONFLICTOS (Reglas tipo "conflicto" activas)
+  const reglasConflicto = kb.reglas.filter((r) => r.tipo === 'conflicto' && r.activa !== false);
   for (const r of reglasConflicto) {
     const condiciones = r.si || [];
     if (condiciones.length > 0) {
       const seDispara = condiciones.every((cond) =>
         evaluarCondicion(cond, null, hechos)
       );
-      if (seDispara && r.entonces?.mensaje) {
+      if (seDispara && (r.entonces?.mensaje || r.entonces?.motivo)) {
+        const msg = r.entonces.mensaje || r.entonces.motivo || 'Conflicto detectado en tus hechos';
         conflictos.push({
           reglaId: r.id,
           nombre: r.nombre,
-          mensaje: r.entonces.mensaje,
+          mensaje: msg,
         });
 
         logReglas.push({
@@ -489,11 +613,17 @@ export function ejecutarInferencia(
           reglaNombre: r.nombre,
           paisNombre: 'Global',
           resultado: 'aviso',
-          detalle: r.entonces.mensaje,
+          detalle: msg,
+          tipo: r.esPersonalizada ? 'personalizada' : 'conflicto',
+          paso: '5. Conflictos',
+          esReglaSeguida: true,
         });
       }
     }
   }
+
+  // Filtrar las reglas que el sistema SÍ siguió en el proceso de inferencia
+  const reglasSeguidas = logReglas.filter((r) => r.esReglaSeguida === true);
 
   return {
     paisesMostrados,
@@ -509,6 +639,7 @@ export function ejecutarInferencia(
     sugerenciaRelajacion,
     sinPreferenciasIndicadas,
     logReglas,
+    reglasSeguidas,
     preguntasRestriccionSinResponder,
   };
 }

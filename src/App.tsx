@@ -3,8 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { HechosUsuario, KnowledgeBase } from './data/types';
+import { HechosUsuario, KnowledgeBase, Regla, Pregunta } from './data/types';
 import { loadKnowledgeBase } from './data/knowledgeLoader';
+import {
+  obtenerReglasPersonalizadas,
+  agregarReglaPersonalizada,
+  eliminarReglaPersonalizada,
+  alternarReglaPersonalizada,
+} from './data/customRules';
+import {
+  obtenerPreguntasPersonalizadas,
+  agregarPreguntaPersonalizada,
+  eliminarPreguntaPersonalizada,
+} from './data/customQuestions';
 import { ejecutarInferencia } from './engine/inference';
 import { Navbar } from './ui/Navbar';
 import { Footer } from './ui/Footer';
@@ -14,6 +25,8 @@ import { ResultsView } from './ui/ResultsView';
 import { DiscardedCountriesView } from './ui/DiscardedCountriesView';
 import { RulesLogView } from './ui/RulesLogView';
 import { TestsView } from './ui/TestsView';
+import { AddRuleModal } from './ui/AddRuleModal';
+import { AddQuestionModal } from './ui/AddQuestionModal';
 import { Compass, AlertCircle } from 'lucide-react';
 
 type ViewMode = 'home' | 'wizard' | 'results' | 'discarded' | 'rules' | 'tests';
@@ -26,6 +39,8 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('home');
   const [hechos, setHechos] = useState<HechosUsuario>({});
   const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [isAddRuleModalOpen, setIsAddRuleModalOpen] = useState<boolean>(false);
+  const [isAddQuestionModalOpen, setIsAddQuestionModalOpen] = useState<boolean>(false);
 
   // Escuchar cambios de hash para navegación por URL (e.g. #/tests)
   useEffect(() => {
@@ -52,11 +67,29 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Carga inicial de knowledge.json
+  // Carga inicial de knowledge.json unificado con reglas y preguntas personalizadas
   useEffect(() => {
     loadKnowledgeBase()
       .then((data) => {
-        setKb(data);
+        // Unificar reglas personalizadas
+        const personalizadasReglas = obtenerReglasPersonalizadas();
+        const mapaReglas = new Map(data.reglas.map((r) => [r.id, r]));
+        for (const p of personalizadasReglas) {
+          mapaReglas.set(p.id, p);
+        }
+
+        // Unificar preguntas personalizadas añadidas por el cliente
+        const personalizadasPreguntas = obtenerPreguntasPersonalizadas();
+        const mapaPreguntas = new Map(data.preguntas.map((q) => [q.id, q]));
+        for (const q of personalizadasPreguntas) {
+          mapaPreguntas.set(q.id, q);
+        }
+
+        setKb({
+          ...data,
+          reglas: Array.from(mapaReglas.values()),
+          preguntas: Array.from(mapaPreguntas.values()),
+        });
         setLoading(false);
       })
       .catch((err) => {
@@ -92,6 +125,54 @@ export default function App() {
     setHechos({});
     setHasStarted(false);
     navigateTo('home');
+  };
+
+  // Handlers para administración de preguntas por el cliente
+  const handleAddQuestion = (nuevaPregunta: Pregunta) => {
+    agregarPreguntaPersonalizada(nuevaPregunta);
+    setKb((prev) => {
+      if (!prev) return prev;
+      const filtradas = prev.preguntas.filter((q) => q.id !== nuevaPregunta.id);
+      return {
+        ...prev,
+        preguntas: [...filtradas, nuevaPregunta],
+      };
+    });
+  };
+
+  // Handlers para administración de reglas por el cliente
+  const handleAddRule = (nuevaRegla: Regla) => {
+    agregarReglaPersonalizada(nuevaRegla);
+    setKb((prev) => {
+      if (!prev) return prev;
+      const filtradas = prev.reglas.filter((r) => r.id !== nuevaRegla.id);
+      return {
+        ...prev,
+        reglas: [...filtradas, nuevaRegla],
+      };
+    });
+  };
+
+  const handleToggleRule = (reglaId: string, activa: boolean) => {
+    alternarReglaPersonalizada(reglaId, activa);
+    setKb((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        reglas: prev.reglas.map((r) => (r.id === reglaId ? { ...r, activa } : r)),
+      };
+    });
+  };
+
+  const handleDeleteRule = (reglaId: string) => {
+    eliminarReglaPersonalizada(reglaId);
+    setKb((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        reglas: prev.reglas.filter((r) => r.id !== reglaId),
+      };
+    });
   };
 
   // Motor de inferencia en tiempo real (modo flexible con umbral M1 fijo en 70% por defecto)
@@ -183,6 +264,7 @@ export default function App() {
         quedanPaises={resultadoInferencia?.paisesValidos.length}
         onReset={handleReset}
         hasStarted={hasStarted}
+        onOpenAddQuestion={() => setIsAddQuestionModalOpen(true)}
       />
 
       <main className="flex-1 flex flex-col">
@@ -212,6 +294,9 @@ export default function App() {
             onRestart={handleReset}
             onApplyRelaxation={handleApplyRelaxation}
             onUpdateHecho={handleAnswer}
+            onOpenAddRule={() => setIsAddRuleModalOpen(true)}
+            onOpenAddQuestion={() => setIsAddQuestionModalOpen(true)}
+            onNavigateToRules={() => navigateTo('rules')}
           />
         )}
 
@@ -225,7 +310,12 @@ export default function App() {
         {currentView === 'rules' && resultadoInferencia && (
           <RulesLogView
             logs={resultadoInferencia.logReglas}
-            onBackToResults={() => navigateTo('results')}
+            reglasSeguidas={resultadoInferencia.reglasSeguidas}
+            todasLasReglas={kb.reglas}
+            onBackToResults={() => navigateTo(hasStarted ? 'results' : 'home')}
+            onOpenAddRule={() => setIsAddRuleModalOpen(true)}
+            onToggleRule={handleToggleRule}
+            onDeleteRule={handleDeleteRule}
           />
         )}
 
@@ -238,6 +328,22 @@ export default function App() {
       </main>
 
       <Footer version={kb.version} />
+
+      {/* Modal para añadir nuevas preguntas al cuestionario por el cliente */}
+      <AddQuestionModal
+        isOpen={isAddQuestionModalOpen}
+        onClose={() => setIsAddQuestionModalOpen(false)}
+        onAddQuestion={handleAddQuestion}
+        totalPreguntasExistentes={kb.preguntas.length}
+      />
+
+      {/* Modal para añadir nuevas reglas por el cliente */}
+      <AddRuleModal
+        isOpen={isAddRuleModalOpen}
+        onClose={() => setIsAddRuleModalOpen(false)}
+        onAddRule={handleAddRule}
+        totalReglasExistentes={kb.reglas.length}
+      />
     </div>
   );
 }

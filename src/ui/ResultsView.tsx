@@ -26,6 +26,9 @@ import {
   Calendar,
   Wallet,
   Clock,
+  Plus,
+  ListFilter,
+  BookOpen,
 } from 'lucide-react';
 
 interface ResultsViewProps {
@@ -34,6 +37,9 @@ interface ResultsViewProps {
   onRestart: () => void;
   onApplyRelaxation?: (criterioId?: string, reglaId?: string) => void;
   onUpdateHecho: (clave: string, valor: any) => void;
+  onOpenAddRule?: () => void;
+  onOpenAddQuestion?: () => void;
+  onNavigateToRules?: () => void;
 }
 
 const NOMBRES_MESES = [
@@ -47,12 +53,16 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   onRestart,
   onApplyRelaxation,
   onUpdateHecho,
+  onOpenAddRule,
+  onOpenAddQuestion,
+  onNavigateToRules,
 }) => {
   const [modalExplicacion, setModalExplicacion] = useState<ExplicacionCompletaPais | null>(null);
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
   const [selectedForCompare, setSelectedForCompare] = useState<number[]>([]);
   const [showComparator, setShowComparator] = useState<boolean>(false);
   const [copiedReport, setCopiedReport] = useState<boolean>(false);
+  const [showReglasTrace, setShowReglasTrace] = useState<boolean>(true);
 
   const top3 = resultado.paisesValidos.slice(0, 3);
   const restoPaises = resultado.paisesValidos.slice(3);
@@ -135,6 +145,30 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
 
         {/* Acciones principales */}
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          {/* Botón "+ Añadir Pregunta" */}
+          {onOpenAddQuestion && (
+            <button
+              onClick={onOpenAddQuestion}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs cursor-pointer"
+              title="Añadir una nueva pregunta personalizada al cuestionario (ej: viajar con mascotas, etc.)"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Añadir pregunta</span>
+            </button>
+          )}
+
+          {/* Botón Ver Reglas Seguidas / Trazabilidad */}
+          {onNavigateToRules && (
+            <button
+              onClick={onNavigateToRules}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 cursor-pointer"
+              title="Ver el log y trazabilidad completa de las reglas seguidas por el motor"
+            >
+              <ListFilter className="w-3.5 h-3.5" />
+              <span>Ver reglas seguidas ({resultado.reglasSeguidas?.length || 0})</span>
+            </button>
+          )}
+
           {/* Botón Simulador "¿Qué pasaría si...?" */}
           <button
             onClick={() => setShowSimulator((prev) => !prev)}
@@ -272,6 +306,106 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           )}
         </div>
       )}
+
+      {/* 4.5 PROCESO DEL SISTEMA EXPERTO: REGLAS QUE SÍ SE SIGUIERON */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span>Proceso del Sistema Experto: Reglas que SÍ sigue el motor</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  {resultado.reglasSeguidas?.length || 0} reglas satisfechas
+                </span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                Encadenamiento hacia adelante (forward chaining): reglas ejecutadas y validadas positivamente para este viaje.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {onOpenAddQuestion && (
+              <button
+                onClick={onOpenAddQuestion}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Añadir pregunta</span>
+              </button>
+            )}
+            {onNavigateToRules && (
+              <button
+                onClick={onNavigateToRules}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+              >
+                <span>Ver trazabilidad completa</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Resumen de Reglas Seguidas en píldoras visuales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+          {/* Deducciones */}
+          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                1. Deducciones
+              </span>
+              <span className="text-xs font-bold text-indigo-600 font-mono">D1, D2</span>
+            </div>
+            <p className="text-xs text-slate-700 font-medium leading-relaxed">
+              {hechos.mes ? `Mes fijado (${NOMBRES_MESES[Number(hechos.mes) - 1]}): clima deducido.` : 'Deducción de omisiones de restricción aplicadas.'}
+            </p>
+          </div>
+
+          {/* Filtros superados */}
+          <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                2. Filtros Superados
+              </span>
+              <span className="text-xs font-bold text-emerald-700 font-mono">
+                {resultado.paisesCumplenTodos.length} cumplen 100%
+              </span>
+            </div>
+            <p className="text-xs text-emerald-900 font-medium leading-relaxed">
+              F1 (Presupuesto), F2 (Vuelo), F4 (Visado), F5 (Seguridad), F6 (Salud) satisfechos por los candidatos.
+            </p>
+          </div>
+
+          {/* Puntuación P1 / P2 */}
+          <div className="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">
+                3. Ponderación
+              </span>
+              <span className="text-xs font-bold text-blue-700 font-mono">P1 / P2</span>
+            </div>
+            <p className="text-xs text-blue-900 font-medium leading-relaxed">
+              Afinidad calculada: suma(peso × afinidad)/suma(5×peso) sobre 8 criterios activos.
+            </p>
+          </div>
+
+          {/* Meta-reglas M1, M2, M3 */}
+          <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-800">
+                4. Meta-reglas
+              </span>
+              <span className="text-xs font-bold text-purple-700 font-mono">M1, M2, M3</span>
+            </div>
+            <p className="text-xs text-purple-900 font-medium leading-relaxed">
+              Umbral fijo 70% (M1), Top 3 flexible (M2) y desempate por coste y afinidades altas (M3).
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* 5. TOP 3 DESTINOS RECOMENDADOS */}
       {top3.length > 0 && (() => {

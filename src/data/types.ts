@@ -76,6 +76,8 @@ export interface Regla {
   fuente?: string;
   umbral_propio?: boolean;
   justificacion?: string;
+  esPersonalizada?: boolean;
+  activa?: boolean;
 }
 
 export interface OpcionPregunta {
@@ -95,6 +97,8 @@ export interface Pregunta {
   etiquetas?: Record<string, string>;
   permite_me_da_igual?: boolean;
   opcional?: boolean;
+  esPersonalizada?: boolean;
+  descripcion?: string;
 }
 
 export interface KnowledgeBase {

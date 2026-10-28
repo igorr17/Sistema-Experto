@@ -53,8 +53,11 @@ export interface LogReglaDisparada {
   reglaId: string;
   reglaNombre: string;
   paisNombre: string;
-  resultado: 'descartado' | 'superado' | 'aviso' | 'ajuste';
+  resultado: 'descartado' | 'superado' | 'aviso' | 'ajuste' | 'aplicada' | 'deducida';
   detalle: string;
+  tipo?: 'filtro' | 'deduccion' | 'puntuacion' | 'meta' | 'conflicto' | 'personalizada';
+  paso?: string;
+  esReglaSeguida?: boolean;
 }
 
 export interface SugerenciaRelajacion {
@@ -79,5 +82,6 @@ export interface ResultadoInferencia {
   sugerenciaRelajacion?: SugerenciaRelajacion;
   sinPreferenciasIndicadas: boolean;
   logReglas: LogReglaDisparada[];
+  reglasSeguidas: LogReglaDisparada[]; // Reglas que el sistema SÍ siguió en el proceso de inferencia
   preguntasRestriccionSinResponder: string[];
 }
