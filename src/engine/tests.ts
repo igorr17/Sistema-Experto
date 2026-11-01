@@ -2,9 +2,10 @@
  * Conjunto de pruebas automatizadas sobre el motor de inferencia y knowledge.json
  * Cubre los casos de prueba sin ninguna referencia a cercanía, con los casos 11 y 11b revisados.
  */
-import { HechosUsuario, KnowledgeBase } from '../data/types';
+import { HechosUsuario, KnowledgeBase, Regla } from '../data/types';
 import { calcularAfinidadClima } from './evaluator';
 import { ejecutarInferencia } from './inference';
+import { REGLAS_BASE_IDS } from '../data/customRules';
 
 export interface TestCaseResult {
   id: string | number;
@@ -22,9 +23,36 @@ export interface TestReport {
   tiempoMs: number;
 }
 
-export function runTests(kb: KnowledgeBase): TestReport {
+export function runTests(kbInput: KnowledgeBase): TestReport {
   const inicio = performance.now();
   const resultados: TestCaseResult[] = [];
+
+  // Extraer las reglas base canónicas sin permitir que ninguna regla personalizada
+  // o regla con ID repetido pise o contamine la ejecución del banco de pruebas
+  const baseRulesMap = new Map<string, Regla>();
+  // Filtrar estrictamente reglas no personalizadas para evitar que sobreescriban las base
+  const reglasCandidatas = kbInput.reglas.filter((r) => !r.esPersonalizada);
+
+  for (const r of reglasCandidatas) {
+    if (!r || !r.id) continue;
+    const idUpper = r.id.trim().toUpperCase();
+    if (REGLAS_BASE_IDS.has(idUpper)) {
+      if (!baseRulesMap.has(idUpper)) {
+        baseRulesMap.set(idUpper, r);
+      } else {
+        // Si hay duplicado con el mismo ID, quedarse con la regla canónica que tiene condiciones válidas
+        const existente = baseRulesMap.get(idUpper)!;
+        if ((!existente.si || existente.si.length === 0) && (r.si && r.si.length > 0)) {
+          baseRulesMap.set(idUpper, r);
+        }
+      }
+    }
+  }
+
+  const kb: KnowledgeBase = {
+    ...kbInput,
+    reglas: Array.from(baseRulesMap.values()),
+  };
 
   // 1. Presupuesto 40 €/día: ningún país con coste_diario > 40 cumple todos los filtros
   try {

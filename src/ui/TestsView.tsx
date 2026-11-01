@@ -38,10 +38,10 @@ export const TestsView: React.FC<TestsViewProps> = ({ kb, onBack }) => {
             )}
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Validación de Casos de Prueba (15 casos)
+            Validación de Casos de Prueba ({report ? `${report.total} casos` : '16 casos'})
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Ejecución determinista de los 15 escenarios de prueba exigidos sobre knowledge.json.
+            Ejecución determinista de los escenarios de prueba exigidos sobre knowledge.json (con aislamiento total contra colisiones de reglas).
           </p>
         </div>
 
@@ -72,7 +72,7 @@ export const TestsView: React.FC<TestsViewProps> = ({ kb, onBack }) => {
               <strong className="text-2xl font-black text-slate-900">{report.total}</strong>
             </div>
             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold">
-              15
+              {report.total}
             </div>
           </div>
 

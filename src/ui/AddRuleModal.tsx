@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Condicion, Regla } from '../data/types';
+import { REGLAS_BASE_IDS } from '../data/customRules';
 import { X, Plus, Trash2, CheckCircle2, ShieldAlert, Sparkles, HelpCircle } from 'lucide-react';
 
 interface AddRuleModalProps {
@@ -82,6 +83,13 @@ export const AddRuleModal: React.FC<AddRuleModalProps> = ({
     }
     if (!reglaId.trim()) {
       setErrorMsg('Por favor ingresa un identificador único (ID) para la regla.');
+      return;
+    }
+    const idNormalizado = reglaId.trim().toUpperCase();
+    if (REGLAS_BASE_IDS.has(idNormalizado)) {
+      setErrorMsg(
+        `El identificador "${idNormalizado}" es una regla base reservada del sistema experto (F1-F7, F10, P1, P2, etc.) y no se puede pisar ni sobreescribir. Por favor usa un ID personalizado como R_CLIENTE_...`
+      );
       return;
     }
     if (!motivo.trim()) {

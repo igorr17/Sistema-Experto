@@ -10,6 +10,7 @@ import {
   agregarReglaPersonalizada,
   eliminarReglaPersonalizada,
   alternarReglaPersonalizada,
+  REGLAS_BASE_IDS,
 } from './data/customRules';
 import {
   obtenerPreguntasPersonalizadas,
@@ -71,11 +72,21 @@ export default function App() {
   useEffect(() => {
     loadKnowledgeBase()
       .then((data) => {
-        // Unificar reglas personalizadas
+        // Unificar reglas personalizadas con protección estricta de reglas base (F1-F7, F10, etc.)
         const personalizadasReglas = obtenerReglasPersonalizadas();
+        const baseRulesMap = new Map<string, Regla>();
+        for (const r of data.reglas) {
+          baseRulesMap.set(r.id.trim().toUpperCase(), r);
+        }
+
+        // Añadir únicamente reglas personalizadas cuyo ID no colisione con ninguna base ni esté repetido
         const mapaReglas = new Map(data.reglas.map((r) => [r.id, r]));
         for (const p of personalizadasReglas) {
-          mapaReglas.set(p.id, p);
+          if (!p || !p.id) continue;
+          const pIdNorm = p.id.trim().toUpperCase();
+          if (!REGLAS_BASE_IDS.has(pIdNorm) && !baseRulesMap.has(pIdNorm) && !mapaReglas.has(p.id)) {
+            mapaReglas.set(p.id, p);
+          }
         }
 
         // Unificar preguntas personalizadas añadidas por el cliente
@@ -142,13 +153,26 @@ export default function App() {
 
   // Handlers para administración de reglas por el cliente
   const handleAddRule = (nuevaRegla: Regla) => {
-    agregarReglaPersonalizada(nuevaRegla);
+    let idFinal = String(nuevaRegla.id || '').trim().toUpperCase();
+    if (REGLAS_BASE_IDS.has(idFinal)) {
+      idFinal = `R_CUSTOM_${nuevaRegla.id}_${Date.now()}`;
+    }
+    const reglaSegura: Regla = {
+      ...nuevaRegla,
+      id: idFinal,
+      esPersonalizada: true,
+    };
+    agregarReglaPersonalizada(reglaSegura);
     setKb((prev) => {
       if (!prev) return prev;
-      const filtradas = prev.reglas.filter((r) => r.id !== nuevaRegla.id);
+      // Mantener todas las reglas base protegidas intactas
+      const base = prev.reglas.filter((r) => REGLAS_BASE_IDS.has(r.id.trim().toUpperCase()));
+      const customSinEsta = prev.reglas.filter(
+        (r) => !REGLAS_BASE_IDS.has(r.id.trim().toUpperCase()) && r.id.trim().toUpperCase() !== idFinal
+      );
       return {
         ...prev,
-        reglas: [...filtradas, nuevaRegla],
+        reglas: [...base, ...customSinEsta, reglaSegura],
       };
     });
   };
@@ -314,6 +338,7 @@ export default function App() {
             todasLasReglas={kb.reglas}
             onBackToResults={() => navigateTo(hasStarted ? 'results' : 'home')}
             onOpenAddRule={() => setIsAddRuleModalOpen(true)}
+            onOpenAddQuestion={() => setIsAddQuestionModalOpen(true)}
             onToggleRule={handleToggleRule}
             onDeleteRule={handleDeleteRule}
           />

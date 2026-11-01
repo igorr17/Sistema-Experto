@@ -13,8 +13,6 @@ export async function loadKnowledgeBase(): Promise<KnowledgeBase> {
   const candidateUrls = [
     '/knowledge.json',
     '/public/knowledge.json',
-    '/assets/aistudio/knowledge.app_72fb3246.json',
-    '/public/assets/aistudio/knowledge.app_72fb3246.json',
   ];
 
   let lastError: Error | null = null;

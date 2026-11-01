@@ -24,7 +24,8 @@ interface RulesLogViewProps {
   reglasSeguidas: LogReglaDisparada[];
   todasLasReglas: Regla[];
   onBackToResults: () => void;
-  onOpenAddRule: () => void;
+  onOpenAddRule?: () => void;
+  onOpenAddQuestion?: () => void;
   onToggleRule: (reglaId: string, activa: boolean) => void;
   onDeleteRule?: (reglaId: string) => void;
 }
@@ -35,6 +36,7 @@ export const RulesLogView: React.FC<RulesLogViewProps> = ({
   todasLasReglas,
   onBackToResults,
   onOpenAddRule,
+  onOpenAddQuestion,
   onToggleRule,
   onDeleteRule,
 }) => {
@@ -104,14 +106,27 @@ export const RulesLogView: React.FC<RulesLogViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
-          {/* Botón "+ Añadir nueva regla" */}
-          <button
-            onClick={onOpenAddRule}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Añadir nueva regla</span>
-          </button>
+          {/* Botón "+ Añadir nueva pregunta" para el cliente */}
+          {onOpenAddQuestion && (
+            <button
+              onClick={onOpenAddQuestion}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              title="Añadir nueva pregunta al cuestionario interactivo (ej: ¿Viajas con mascotas?)"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Añadir nueva pregunta</span>
+            </button>
+          )}
+
+          {onOpenAddRule && (
+            <button
+              onClick={onOpenAddRule}
+              className="px-3.5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5 text-slate-500" />
+              <span>Añadir regla</span>
+            </button>
+          )}
 
           <button
             onClick={onBackToResults}
