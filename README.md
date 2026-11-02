@@ -24,7 +24,7 @@ Cómo se comprueba que funciona: las 15 pruebas más la 11b de `#/tests` deben p
 
 ## Acceso
 
-- Aplicación publicada (Google AI Studio): [https://ais-pre-2cy6rt5tn6uooqyhqelfk6-556099280382.europe-west3.run.app](https://ais-pre-2cy6rt5tn6uooqyhqelfk6-556099280382.europe-west3.run.app)
+- Aplicación publicada (Google AI Studio): [https://akinator-de-viajes.ai.studio)
 - Batería de pruebas en vivo: [https://ais-pre-2cy6rt5tn6uooqyhqelfk6-556099280382.europe-west3.run.app/#/tests](https://ais-pre-2cy6rt5tn6uooqyhqelfk6-556099280382.europe-west3.run.app/#/tests)
 - Memoria del proyecto: [`docs/Memoria_sistExperto.pdf`](docs/Memoria_sistExperto.pdf) (versión editable en [`docs/Memoria_sistExperto.docx`](docs/Memoria_sistExperto.docx))
 - Registro de pruebas automatizadas: [`docs/resultado_pruebas.md`](docs/resultado_pruebas.md)
