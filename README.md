@@ -24,7 +24,7 @@ Cómo se comprueba que funciona: las 15 pruebas más la 11b de `#/tests` deben p
 
 ## Acceso
 
-- Aplicación publicada (Google AI Studio): **PENDIENTE: enlace público de la aplicación**
+- Aplicación publicada (Google AI Studio): <https://akinator-de-viajes.ai.studio/>
 - Memoria del proyecto: [`docs/Memoria_sistExperto.pdf`](docs/Memoria_sistExperto.pdf) (versión editable en [`docs/Memoria_sistExperto.docx`](docs/Memoria_sistExperto.docx))
 
 ## Destinatarios
